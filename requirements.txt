@@ -1,0 +1,10 @@
+# Runtime
+pydantic>=2.5
+openai>=1.40          # OpenAI-compatible chat/completions (vision + tools)
+anthropic>=0.40       # Anthropic Messages API (vision + tools)
+pyyaml>=6.0           # SKILL.md frontmatter
+python-dotenv>=1.0    # load .env for the CLI
+
+# Tests
+pytest>=8.0
+pytest-asyncio>=0.23

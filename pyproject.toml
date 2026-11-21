@@ -1,0 +1,10 @@
+# Tool configuration only. The project is run from the repository root
+# (python -m agent ...) and is not packaged as a distribution.
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+# importlib mode keeps tests/agent from shadowing the top-level `agent` package.
+# basetemp stays inside the repo because some Windows setups deny writes to the system temp dir.
+addopts = "--import-mode=importlib --basetemp=.pytest_tmp"
