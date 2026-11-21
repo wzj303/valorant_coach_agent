@@ -21,6 +21,8 @@
   <section class="panel" id="input-panel">
     <h2>输入</h2>
 
+    <div id="address-note" class="address-note muted" hidden></div>
+
     <div class="field">
       <label>任务类型</label>
       <div class="segmented" id="task-group">
@@ -51,6 +53,38 @@
         <div id="previews" class="previews"></div>
       </div>
     </div>
+
+    <details class="field" id="config-panel">
+      <summary>模型配置（真实模型）</summary>
+      <div class="config-grid">
+        <div class="field">
+          <label>接口格式</label>
+          <select id="cfg-format">
+            <option value="openai">OpenAI 兼容（chat/completions）</option>
+            <option value="anthropic">Anthropic（/v1/messages）</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Base URL（留空使用官方默认地址）</label>
+          <input type="text" id="cfg-base-url" placeholder="https://api.deepseek.com/v1">
+        </div>
+        <div class="field">
+          <label>模型名（需支持图片输入和工具调用）</label>
+          <input type="text" id="cfg-model" placeholder="例如 gpt-4o / deepseek-vl">
+        </div>
+        <div class="field">
+          <label>API Key（保存后不回显；留空则保留服务器已有密钥）</label>
+          <input type="password" id="cfg-key" placeholder="sk-..." autocomplete="off">
+        </div>
+      </div>
+      <div class="sample-row">
+        <button type="button" id="cfg-save">保存到服务器（全队共用）</button>
+        <button type="button" id="cfg-test">测试连接（文字 / 看图 / 工具调用）</button>
+      </div>
+      <label class="check"><input type="checkbox" id="cfg-ephemeral"> 仅本次分析使用上面填写的配置（不保存到服务器）</label>
+      <div id="cfg-note" class="muted note-line"></div>
+      <div id="cfg-probes" class="probe-list"></div>
+    </details>
 
     <details class="field" id="advanced">
       <summary>高级：直接粘贴快照 JSON（RoundSnapshot / PositionSnapshot）</summary>

@@ -2,15 +2,20 @@
 
 Serves the static web UI and a small JSON API:
 
-    GET  /               web UI (static/index.html)
-    GET  /api/health     server mode and available skills
-    GET  /api/samples    sample RoundSnapshot / PositionSnapshot fixtures
-    POST /api/analyze    run one coach analysis and return the report
+    GET  /                 web UI (static/index.html)
+    GET  /api/health       server mode, skills and teammate addresses
+    GET  /api/config       current model config (API key never returned)
+    POST /api/config       save model config to the server-side .env
+    POST /api/config/test  probe text / vision / tool-calling of a model config
+    GET  /api/samples      sample RoundSnapshot / PositionSnapshot fixtures
+    POST /api/analyze      run one coach analysis and return the report
 
 The server uses only the Python standard library, so teammates need nothing
 installed: one person starts `python -m webapp`, everyone on the LAN opens the
 printed address in a browser. Without LLM credentials the offline scripted
-model (DemoLlm) is used; with a configured .env the real model adapter is used.
+model (DemoLlm) is used; the web UI can also save a model config to the local
+.env file (shared by the whole team) or pass a per-request config that is used
+for that one analysis only and never stored.
 """
 from __future__ import annotations
 
@@ -19,6 +24,7 @@ import base64
 import binascii
 import json
 import logging
+import os
 import socket
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -28,6 +34,7 @@ from typing import Any
 from agent import (AgentLoop, AgentRequest, AgentRequestError, AgentError, ImagePart,
                    InvalidImageError, LlmConfigError, SkillLoader)
 from agent.demo import DemoLlm
+from agent.diagnostics import check_capabilities
 from agent.llm_adapter import LlmConfig, RealLlmAdapter
 from agent.report import render_markdown
 from tools.registry import build_registry
@@ -37,22 +44,111 @@ log = logging.getLogger("webapp")
 ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = ROOT / "webapp" / "static"
 FIXTURES_DIR = ROOT / "tests" / "schemas" / "fixtures"
+ENV_FILE = ROOT / ".env"
 
 DEFAULT_PORT = 8765
 MAX_BODY_BYTES = 64 * 1024 * 1024
 MAX_IMAGES = 10
 MAX_TEXT_CHARS = 20000
 TASKS = ("buy_review", "position_review", "match_review")
+_ENV_KEYS = ("VALORANT_LLM_FORMAT", "VALORANT_LLM_BASE_URL", "VALORANT_LLM_API_KEY",
+             "VALORANT_LLM_MODEL")
 _CONTENT_TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
                   ".js": "application/javascript; charset=utf-8", ".svg": "image/svg+xml",
                   ".png": "image/png", ".ico": "image/x-icon"}
 
 
+# ------------------------------------------------------------- .env handling
+def _read_env_file(path: Path) -> dict[str, str]:
+    """Parse KEY=VALUE lines (with optional quotes). Missing file -> {}."""
+    values: dict[str, str] = {}
+    try:
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+    except OSError:
+        return values
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            value = value[1:-1]
+        values[key] = value
+    return values
+
+
+def _write_env_file(path: Path, updates: dict[str, str]) -> None:
+    """Update only the managed VALORANT_LLM_* keys; keep every other line intact."""
+    lines: list[str] = []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        lines = []
+    kept_keys = set()
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped and not stripped.startswith("#") and "=" in stripped:
+            key = stripped.partition("=")[0].strip()
+            if key in updates:
+                lines[index] = f"{key}={json.dumps(updates[key], ensure_ascii=False)}"
+                kept_keys.add(key)
+    for key in sorted(updates):
+        if key not in kept_keys:
+            lines.append(f"{key}={json.dumps(updates[key], ensure_ascii=False)}")
+    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+
+def _merged_env() -> dict[str, str]:
+    """Process env wins; .env file fills in anything unset (like python-dotenv)."""
+    merged = dict(os.environ)
+    for key, value in _read_env_file(ENV_FILE).items():
+        if key not in merged:
+            merged[key] = value
+    return merged
+
+
 def available_config() -> LlmConfig | None:
     try:
-        return LlmConfig.from_env()
+        return LlmConfig.from_env(_merged_env())
     except LlmConfigError:
         return None
+
+
+def config_snapshot() -> dict[str, Any]:
+    """Masked config for the UI. The API key itself is never sent back."""
+    values = {key: _merged_env().get(key, "") for key in _ENV_KEYS}
+    return {
+        "format": values["VALORANT_LLM_FORMAT"] or "openai",
+        "base_url": values["VALORANT_LLM_BASE_URL"] or "",
+        "model": values["VALORANT_LLM_MODEL"] or "",
+        "has_key": bool(values["VALORANT_LLM_API_KEY"]),
+    }
+
+
+def _config_from_fields(fields: dict, *, existing: dict[str, str] | None = None) -> LlmConfig:
+    """Build a LlmConfig from user-supplied fields, falling back to saved values."""
+    saved = existing if existing is not None else {key: _merged_env().get(key, "") for key in _ENV_KEYS}
+
+    def pick(name: str, default: str) -> str:
+        value = fields.get(name)
+        return str(value).strip() if value not in (None, "") else default
+
+    api_format = pick("format", saved["VALORANT_LLM_FORMAT"] or "openai")
+    if api_format not in ("openai", "anthropic"):
+        raise LlmConfigError("format must be 'openai' or 'anthropic'")
+    api_key = pick("api_key", saved["VALORANT_LLM_API_KEY"])
+    model = pick("model", saved["VALORANT_LLM_MODEL"])
+    if not api_key or not model:
+        raise LlmConfigError("api_key and model are required (save a server config first, "
+                             "or fill in both fields)")
+    try:
+        return LlmConfig(api_format=api_format,
+                         base_url=pick("base_url", saved["VALORANT_LLM_BASE_URL"]) or None,
+                         api_key=api_key, model=model)
+    except ValueError as exc:
+        raise LlmConfigError(f"invalid model config: {exc}") from exc
 
 
 def server_mode() -> str:
@@ -89,6 +185,24 @@ class Handler(BaseHTTPRequestHandler):
     def _error(self, status: int, message: str) -> None:
         self._json(status, {"error": message})
 
+    def _read_json_body(self) -> dict | None:
+        try:
+            body = self._read_body()
+        except (ConnectionError, TimeoutError) as exc:
+            log.warning("read failed: %s", exc)
+            return None
+        if not body:
+            return None  # _read_body already answered 413
+        try:
+            payload = json.loads(body.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            self._error(400, "body must be a UTF-8 JSON object")
+            return None
+        if not isinstance(payload, dict):
+            self._error(400, "body must be a JSON object")
+            return None
+        return payload
+
     def _read_body(self) -> bytes:
         length = int(self.headers.get("Content-Length") or 0)
         if length > self.max_body:
@@ -110,6 +224,8 @@ class Handler(BaseHTTPRequestHandler):
             self._serve_static("index.html")
         elif self.path == "/api/health":
             self._health()
+        elif self.path == "/api/config":
+            self._json(200, config_snapshot())
         elif self.path == "/api/samples":
             self._samples()
         elif self.path.startswith("/static/"):
@@ -130,12 +246,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def _health(self) -> None:
         skills = SkillLoader()
+        port = self.server.server_address[1]
         self._json(200, {
             "status": "ok",
             "mode": server_mode(),
             "tasks": list(TASKS),
             "skills": [{"name": name, "description": description}
                        for name, description in skills.catalog()],
+            "addresses": [f"http://{address}:{port}/" for address in lan_addresses()],
         })
 
     def _samples(self) -> None:
@@ -151,33 +269,88 @@ class Handler(BaseHTTPRequestHandler):
 
     # ----------------------------------------------------------------- POST
     def do_POST(self) -> None:
-        if self.path != "/api/analyze":
+        if self.path == "/api/analyze":
+            payload = self._read_json_body()
+            if payload is not None:
+                self._analyze(payload)
+        elif self.path == "/api/config":
+            payload = self._read_json_body()
+            if payload is not None:
+                self._save_config(payload)
+        elif self.path == "/api/config/test":
+            payload = self._read_json_body()
+            if payload is not None:
+                self._test_config(payload)
+        else:
             self._error(404, "not found")
-            return
+
+    def _save_config(self, payload: dict) -> None:
+        saved = {key: _merged_env().get(key, "") for key in _ENV_KEYS}
         try:
-            body = self._read_body()
-        except (ConnectionError, TimeoutError) as exc:
-            log.warning("read failed: %s", exc)
+            config = _config_from_fields(payload, existing=saved)
+        except LlmConfigError as exc:
+            self._error(400, str(exc))
             return
-        if not body:
-            return  # _read_body already answered 413
+        updates = {
+            "VALORANT_LLM_FORMAT": config.api_format,
+            "VALORANT_LLM_BASE_URL": config.base_url or "",
+            "VALORANT_LLM_API_KEY": config.api_key,
+            "VALORANT_LLM_MODEL": config.model,
+        }
         try:
-            payload = json.loads(body.decode("utf-8"))
-        except (UnicodeDecodeError, ValueError):
-            self._error(400, "body must be a UTF-8 JSON object")
+            _write_env_file(ENV_FILE, updates)
+        except OSError as exc:
+            log.exception("cannot write .env")
+            self._error(500, f"cannot write config file: {exc}")
             return
-        if not isinstance(payload, dict):
-            self._error(400, "body must be a JSON object")
+        log.info("model config saved (format=%s model=%s)", config.api_format, config.model)
+        self._json(200, config_snapshot())
+
+    def _test_config(self, payload: dict) -> None:
+        saved = {key: _merged_env().get(key, "") for key in _ENV_KEYS}
+        try:
+            config = _config_from_fields(payload, existing=saved)
+        except LlmConfigError as exc:
+            self._error(400, str(exc))
             return
-        self._analyze(payload)
+        llm = RealLlmAdapter(config)
+
+        async def run() -> Any:
+            try:
+                return await check_capabilities(llm)
+            finally:
+                await llm.aclose()
+
+        try:
+            probes = asyncio.run(run())
+        except Exception as exc:  # adapter construction or probe plumbing failure
+            log.exception("capability probe failed")
+            self._error(500, f"capability probe failed: {type(exc).__name__}: {exc}")
+            return
+        self._json(200, {
+            "probes": [{"name": probe.name, "passed": probe.passed, "detail": probe.detail}
+                       for probe in probes],
+            "all_passed": all(probe.passed for probe in probes),
+        })
 
     def _analyze(self, payload: dict) -> None:
         request, force_demo, max_iterations = self._build_request(payload)
         if request is None:
             return  # _build_request already answered with 400
 
-        config = None if force_demo else available_config()
-        mode = "real" if config is not None else "demo"
+        request_config = payload.get("config")
+        if isinstance(request_config, dict):
+            try:
+                config = _config_from_fields(request_config)
+            except LlmConfigError as exc:
+                self._error(400, str(exc))
+                return
+            mode = "real"
+        elif force_demo:
+            config, mode = None, "demo"
+        else:
+            config = available_config()
+            mode = "real" if config is not None else "demo"
         try:
             if mode == "real":
                 llm = RealLlmAdapter(config)
@@ -283,7 +456,7 @@ def start_server(host: str = "0.0.0.0", port: int = DEFAULT_PORT, *, quiet: bool
     thread.start()
     if not quiet:
         mode = server_mode()
-        mode_text = "真实模型" if mode == "real" else "离线演示（未配置 .env 模型凭据）"
+        mode_text = "真实模型" if mode == "real" else "离线演示（可在页面里配置模型）"
         print(f"VALORANT 教练 Web 界面已启动（模式：{mode_text}）")
         print(f"  本机地址: http://127.0.0.1:{bound_port}/")
         for address in lan_addresses():

@@ -1,13 +1,16 @@
-"""Web frontend: index, health, samples and analyze endpoints (offline-safe)."""
+"""Web frontend: index, health, config, samples and analyze endpoints (offline-safe)."""
 from __future__ import annotations
 
 import base64
 import json
+import tempfile
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 import pytest
 
+import webapp.server as webapp_server
 from webapp.server import start_server
 
 from tests.agent.helpers import make_png
@@ -30,9 +33,11 @@ def request(url, payload=None, timeout=30):
 @pytest.fixture(scope="module")
 def base_url():
     """Server running in this process, with LLM credentials removed (demo mode)."""
+    tmp_dir = Path(tempfile.mkdtemp(prefix="valorant-webapp-test-"))
     mp = pytest.MonkeyPatch()
     mp.delenv("VALORANT_LLM_API_KEY", raising=False)
     mp.delenv("VALORANT_LLM_MODEL", raising=False)
+    mp.setattr(webapp_server, "ENV_FILE", tmp_dir / ".env")
     server, port, thread = start_server("127.0.0.1", 0, quiet=True)
     yield f"http://127.0.0.1:{port}"
     server.shutdown()
@@ -72,6 +77,7 @@ def test_health_reports_demo_mode_and_skills(base_url):
     assert set(body["tasks"]) == {"buy_review", "position_review", "match_review"}
     names = {skill["name"] for skill in body["skills"]}
     assert names == {"buy-decision-review", "position-coordination-review", "coach-feedback"}
+    assert any("127.0.0.1" in address for address in body["addresses"])
 
 
 def test_analyze_buy_demo_runs_live_tools(base_url):
@@ -182,3 +188,88 @@ def test_real_mode_attempts_the_provider(monkeypatch):
         server.shutdown()
         server.server_close()
         thread.join(timeout=10)
+
+
+def _own_server(monkeypatch, tmp_path):
+    monkeypatch.setattr(webapp_server, "ENV_FILE", tmp_path / ".env")
+    return start_server("127.0.0.1", 0, quiet=True)
+
+
+def _stop(server, thread):
+    server.shutdown()
+    server.server_close()
+    thread.join(timeout=10)
+
+
+def test_config_get_is_masked_and_never_returns_the_key(monkeypatch, tmp_path):
+    server, port, thread = _own_server(monkeypatch, tmp_path)
+    try:
+        base = f"http://127.0.0.1:{port}"
+        status, body = request(base + "/api/config")
+        assert status == 200 and body == {"format": "openai", "base_url": "", "model": "",
+                                          "has_key": False}
+        status, body = request(base + "/api/config",
+                               {"format": "openai", "base_url": "http://127.0.0.1:1/v1",
+                                "model": "team-model", "api_key": "secret-key-123"})
+        assert status == 200
+        assert body["has_key"] and body["model"] == "team-model"
+        assert "secret-key-123" not in json.dumps(body)
+        status, body = request(base + "/api/config")
+        assert body["has_key"] and "secret-key-123" not in json.dumps(body)
+        # The key lives on the server disk only.
+        assert "secret-key-123" in (tmp_path / ".env").read_text(encoding="utf-8")
+        status, health = request(base + "/api/health")
+        assert health["mode"] == "real"
+    finally:
+        _stop(server, thread)
+
+
+def test_config_rejects_invalid_values(monkeypatch, tmp_path):
+    server, port, thread = _own_server(monkeypatch, tmp_path)
+    try:
+        base = f"http://127.0.0.1:{port}"
+        status, body = request(base + "/api/config", {"format": "gopher", "model": "m",
+                                                      "api_key": "k"})
+        assert status == 400 and "format" in body["error"]
+        status, body = request(base + "/api/config", {"format": "openai", "model": "",
+                                                      "api_key": ""})
+        assert status == 400 and "api_key" in body["error"]
+    finally:
+        _stop(server, thread)
+
+
+def test_config_probe_reports_failures_instead_of_crashing(monkeypatch, tmp_path):
+    server, port, thread = _own_server(monkeypatch, tmp_path)
+    try:
+        base = f"http://127.0.0.1:{port}"
+        status, body = request(base + "/api/config/test",
+                               {"format": "openai", "base_url": "http://127.0.0.1:1/v1",
+                                "model": "m", "api_key": "k"}, timeout=30)
+        assert status == 200
+        assert not body["all_passed"]
+        assert {probe["name"] for probe in body["probes"]} == {"text", "vision", "tool_calling"}
+        assert all(not probe["passed"] for probe in body["probes"])
+    finally:
+        _stop(server, thread)
+
+
+def test_analyze_ephemeral_config_requires_key_and_model(base_url):
+    status, body = request(base_url + "/api/analyze",
+                           {"task_type": "buy_review", "text": "x",
+                            "config": {"format": "openai", "model": "", "api_key": ""}})
+    assert status == 400
+    assert "api_key" in body["error"]
+
+
+def test_analyze_ephemeral_config_routes_to_the_provider(monkeypatch, tmp_path):
+    server, port, thread = _own_server(monkeypatch, tmp_path)
+    try:
+        base = f"http://127.0.0.1:{port}"
+        status, body = request(base + "/api/analyze",
+                               {"task_type": "buy_review", "text": "x",
+                                "config": {"format": "openai", "base_url": "http://127.0.0.1:1/v1",
+                                           "model": "m", "api_key": "k"}}, timeout=30)
+        assert status == 500  # unreachable provider, clean error
+        assert body["error"]
+    finally:
+        _stop(server, thread)

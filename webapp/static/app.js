@@ -29,14 +29,97 @@ async function loadHealth() {
     badge.textContent = data.mode === "real" ? "真实模型" : "离线演示";
     badge.className = "badge " + data.mode;
     $("health-note").textContent = data.mode === "real"
-      ? "已检测到 .env 模型配置"
-      : "未配置模型，使用离线脚本演示";
-    $("force-demo").parentElement.hidden = data.mode !== "real";
+      ? "服务器已配置模型"
+      : "未配置模型（可在「模型配置」中填写）";
+    const addressNote = $("address-note");
+    const lan = (data.addresses || []).filter((url) => !url.includes("127.0.0.1"));
+    if (lan.length) {
+      addressNote.hidden = false;
+      addressNote.replaceChildren();
+      addressNote.append("队友访问地址：");
+      lan.forEach((url) => addressNote.append(el("b", "", " " + url)));
+    } else {
+      addressNote.hidden = true;
+    }
   } catch (err) {
     $("mode-badge").textContent = "服务未连接";
     $("mode-badge").className = "badge";
   }
 }
+
+/* ------------------------------------------------------- model config */
+async function loadConfig() {
+  try {
+    const res = await fetch("/api/config");
+    const data = await res.json();
+    $("cfg-format").value = data.format || "openai";
+    $("cfg-base-url").value = data.base_url || "";
+    $("cfg-model").value = data.model || "";
+    $("cfg-key").value = "";
+    $("cfg-note").textContent = data.has_key ? "服务器已保存 API Key（不回显，留空则沿用）" : "";
+  } catch (err) {
+    /* config panel is optional */
+  }
+}
+
+function configFields() {
+  return {
+    format: $("cfg-format").value,
+    base_url: $("cfg-base-url").value.trim(),
+    api_key: $("cfg-key").value.trim(),
+    model: $("cfg-model").value.trim(),
+  };
+}
+
+$("cfg-save").addEventListener("click", async () => {
+  const note = $("cfg-note");
+  note.textContent = "保存中…";
+  try {
+    const res = await fetch("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(configFields()),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      note.textContent = "保存失败：" + (data.error || "HTTP " + res.status);
+      return;
+    }
+    note.textContent = "已保存到服务器，全队共用此配置。";
+    $("cfg-key").value = "";
+    await loadHealth();
+  } catch (err) {
+    note.textContent = "保存失败：" + err.message;
+  }
+});
+
+$("cfg-test").addEventListener("click", async () => {
+  const note = $("cfg-note");
+  const probes = $("cfg-probes");
+  note.textContent = "正在探测模型能力（文字 / 看图 / 工具调用）…";
+  probes.replaceChildren();
+  try {
+    const res = await fetch("/api/config/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(configFields()),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      note.textContent = "测试失败：" + (data.error || "HTTP " + res.status);
+      return;
+    }
+    note.textContent = data.all_passed ? "全部通过，可以开始使用。" : "有探测未通过，见下方详情。";
+    data.probes.forEach((probe) => {
+      const line = el("div", "probe " + (probe.passed ? "pass" : "fail"));
+      line.append(el("span", "p-name", (probe.passed ? "PASS " : "FAIL ") + probe.name));
+      line.append(el("span", "p-detail", probe.detail));
+      probes.append(line);
+    });
+  } catch (err) {
+    note.textContent = "测试失败：" + err.message;
+  }
+});
 
 /* ------------------------------------------------------------------ tasks */
 document.querySelectorAll("#task-group button").forEach((button) => {
@@ -178,8 +261,17 @@ async function runAnalysis() {
     observations: $("observation-input").value.split("\n").map((line) => line.trim()).filter(Boolean),
     images: state.images.map((image) => ({ name: image.name, data: image.data })),
     snapshot,
-    force_demo: $("force-demo").checked,
+    force_demo: !$("cfg-ephemeral").checked && $("force-demo").checked,
   };
+  if ($("cfg-ephemeral").checked) {
+    payload.config = configFields();
+    if (!payload.config.api_key || !payload.config.model) {
+      showError("仅本次使用模式需要填写 API Key 和模型名，或取消勾选该选项。");
+      button.disabled = false;
+      button.textContent = "开始分析";
+      return;
+    }
+  }
 
   try {
     const res = await fetch("/api/analyze", {
@@ -354,4 +446,5 @@ function copyText(text) {
 
 /* ------------------------------------------------------------------ init */
 loadHealth();
+loadConfig();
 loadSamples();
