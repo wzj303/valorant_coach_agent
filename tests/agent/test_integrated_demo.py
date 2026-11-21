@@ -26,6 +26,8 @@ def test_cli_reports_from_live_tools(task, tools, report_field, expected, capsys
     assert expected in getattr(report, report_field)
     assert report.task_status == "partial" and report.missing_information
     assert all(f"{tool}: partial" in output.err for tool in tools)
+    assert "get_coaching_advice: success" in output.err
+    assert any("知识库" in item.reason for item in report.recommendations)
     assert ": failed" not in output.err
 
 
@@ -70,3 +72,27 @@ async def test_position_counts_distances_and_revision():
     assert out.data.player_distances[0].unit == "normalized"
     tactics = await run_tool("lookup_tactics", map_id=p["map_id"], map_revision=p["map_revision"], query="Sunset")
     assert tactics.status == "partial" and tactics.data.entries == []
+
+
+@pytest.mark.parametrize(("query", "section", "expected"), [
+    ("补枪是否可行", "rules", "T01"), ("m02", None, "M02"), ("经济上限是多少", None, "M02"),
+    ("隐世修所", "map_notes", "Haven"), ("Haven", None, "隐世修所"),
+    ("X01", "examples", "X01"), ("zzzzzzzz", None, None), ("E99", None, None),
+    ("M02", "rules", None),
+])
+async def test_citable_coaching_advice(query, section, expected, monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    result = await run_tool("get_coaching_advice", query=query, section=section, limit=1)
+    if expected is None:
+        assert result.status == "partial" and result.data.entries == [] and result.warnings
+        return
+    assert result.status == "success" and len(result.data.entries) == 1
+    match = result.data.entries[0]
+    assert expected in match.title
+    source = json.loads((FIXTURES.parents[2] / result.data.source).read_text(encoding="utf-8-sig"))
+    _, group, index = match.reference.split("/")
+    assert match.content == source[group][int(index)]
+    if query == "X01":
+        assert match.content["kind"] == "synthetic"
+    if query == "m02":
+        assert match.content["values"]["cap"] == 9000

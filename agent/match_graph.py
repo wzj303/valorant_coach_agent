@@ -18,6 +18,7 @@ from .exceptions import LlmCapabilityError
 from .llm_adapter import ILlmAdapter
 from .llm_types import ImagePart, LlmRequest, Message, ToolCall
 from .match_types import MatchState, RoundObservation
+from .report import guide_recommendation
 from .skill_loader import SkillLoader
 from .tool_registry import ToolExecution, ToolRegistry
 from .utils import compact_json, extract_json_object, strip_titles
@@ -223,6 +224,9 @@ class MatchWorkflow:
             calls.append(("lookup_tactics", {"map_id": snapshot["map_id"],
                                              "map_revision": snapshot["map_revision"],
                                              "side": snapshot.get("side"), "query": "开局经济与团队配合"}))
+        topic = current["input"].get("text", "").strip() or state.get("text", "").strip()
+        default_topic = "手枪局买什么" if snapshot["round_index"] in (1, 13) else "队内发枪与混起"
+        calls.append(("get_coaching_advice", {"query": topic[:240] or default_topic, "limit": 2}))
         for name, arguments in calls:
             tools.append(await self._execute(name, arguments))
         current["tools"] = tools
@@ -250,7 +254,9 @@ class MatchWorkflow:
         if self.llm is None:
             rows = timeline([{**current, "round_index": current["input"]["round_index"],
                               "report": {"task_status": "partial", "coach_summary": ""}}])
-            report = self._demo_report(state["match_id"], rows, self._missing(current))
+            advice = next((tool["result"] for tool in current["tools"]
+                           if tool["tool_name"] == "get_coaching_advice"), {})
+            report = self._demo_report(state["match_id"], rows, self._missing(current), advice)
             report = report.model_copy(update={"task_id": round_id})
         else:
             evidence = {"current_round": current["round_snapshot"],
@@ -300,7 +306,7 @@ class MatchWorkflow:
                 "current": {}, "phase": "round_saved"}
 
     @staticmethod
-    def _demo_report(match_id: str, rows: list[dict], missing: list[str]) -> CoachResponse:
+    def _demo_report(match_id: str, rows: list[dict], missing: list[str], advice: dict) -> CoachResponse:
         lines = []
         for row in rows:
             economy = row.get("ally_economy") or {}
@@ -309,7 +315,9 @@ class MatchWorkflow:
                 f"{'购买前' if economy.get('time_basis') == 'before_buy' else '购买后'}"
                 f"已知余额合计 {amount}（{economy.get('known_players', 0)}/5 人）")
             lines.append(f"第 {row['round_index']} 回合：{balance}。")
+        recommendation = guide_recommendation(advice)
         return CoachResponse(task_id=match_id, task_status="partial" if missing else "success",
+                             recommendations=[recommendation] if recommendation else [],
                              overall_judgement="离线结构化数据连续复盘（未识别截图）",
                              buy_review="\n".join(lines), missing_information=list(dict.fromkeys(missing)),
                              coach_summary=f"已按顺序复盘 {len(rows)} 个开局；仅依据提供的快照与工具结果。")
@@ -338,11 +346,15 @@ class MatchWorkflow:
             trace.usage.input_tokens += t.get("usage", {}).get("input_tokens", 0)
             trace.usage.output_tokens += t.get("usage", {}).get("output_tokens", 0)
             trace.tool_executions.extend(ToolExecution.model_validate(tool) for tool in record["tools"])
+        advice = await self._execute("get_coaching_advice", {"query": "识别重复习惯与临场调整", "section": "rules", "limit": 1})
+        trace.tool_executions.append(ToolExecution.model_validate(advice))
+        missing.extend(advice["result"]["warnings"] + advice["result"]["errors"])
         trace.tool_calls = len(trace.tool_executions)
         if self.llm is None:
-            report = self._demo_report(state["match_id"], rows, missing)
+            report = self._demo_report(state["match_id"], rows, missing, advice["result"])
         else:
-            payload = {"timeline": rows, "round_reports": [record["report"] for record in records],
+            payload = {"timeline": rows, "coaching_advice": advice["result"],
+                       "round_reports": [record["report"] for record in records],
                        "coverage": {"uploaded_rounds": len(records), "missing_rounds": gaps, "failed_rounds": failed}}
             request = AgentRequest(task_id=state["match_id"], task_type="match_review", text=state["text"] +
                 "\n请生成整场连续复盘：按时间解释经济与购买变化，区分换边阶段，总结重复问题及最多三条训练建议。"

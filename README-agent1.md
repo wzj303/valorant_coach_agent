@@ -48,7 +48,7 @@ report = await loop.run(AgentRequest(text="...", images=["shot.png"], task_type=
 | `agent/skill_loader.py` | `SkillLoader`：解析 `skills/*/SKILL.md` |
 | `agent/prompts.py` | 系统提示词（推理规则、CoachResponse 填写说明） |
 | `agent/diagnostics.py`、`report.py`、`__main__.py` | 模型能力探测、Markdown 报告、命令行 |
-| `tools/registry.py` | 注册六个工具：`validate_round_data` 加 GPT-3 的五个 |
+| `tools/registry.py` | 注册数据校验、五个战术工具与 `get_coaching_advice` 知识库检索 |
 | `skills/` | `buy-decision-review`、`position-coordination-review`、`coach-feedback` |
 
 复用的开源件：`openai`、`anthropic`（请求、重试、错误类型）、`pydantic`（参数与输出校验）、`PyYAML`（SKILL.md 头部）。单回合 AgentLoop 保持轻量；整场编排使用 `langgraph` 与 `langgraph-checkpoint-sqlite`，直接复用中立模型适配器和战术工具，不需要更换为 LangChain 模型封装。
@@ -68,7 +68,7 @@ report = await loop.run(AgentRequest(text="...", images=["shot.png"], task_type=
 
 - 工具参数 JSON Schema 来自 `TOOL_CONTRACTS[name][0]`，结果校验用 `TOOL_CONTRACTS[name][1]`。
 - `validate_round_data` 的 `expected_map_revision` 由宿主注入（`build_registry(expected_map_revision=...)`），模型传这个参数会被拒绝。
-- 所有工具的 `normalized_snapshot` 是后续工具的唯一输入，Skill 里写明了。
+- 后续计算使用校验返回的 `normalized_snapshot`。专业建议检索接受场景关键词、地图名或条目编号。
 
 ## 与 GPT-3 的集成
 

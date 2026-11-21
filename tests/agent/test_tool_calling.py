@@ -176,7 +176,7 @@ def test_specs_are_clean_json_schemas():
     r = build_registry(handlers=fake_handlers())
     specs = {s.name: s for s in r.specs()}
     assert set(specs) == {"validate_round_data", "analyze_buy_state", "simulate_buy_options",
-                          "get_game_rules", "lookup_tactics", "analyze_positions"}
+                          "get_game_rules", "lookup_tactics", "analyze_positions", "get_coaching_advice"}
     for s in specs.values():
         json.dumps(s.parameters)
         assert s.parameters["type"] == "object" and s.description

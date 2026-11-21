@@ -57,7 +57,7 @@ FieldEvidence.field_name 标识字段。status 表示 observed（直接观察）
 - 同时提交两类快照时取两个分数的算术平均数。分数保留六位小数。证据覆盖和地图匹配单独形成告警。没有可靠输入时返回 null。
 - 必填键遗漏、非法类型、重复槽位、冲突的关联键和越界坐标为 error。字段未读出、来源缺失、金币时点未定或缺少参考版本为 warning。unknown 用于字段层面无法判断的观测。缺失清单指向快照和队内槽位，例如 round_snapshot.ally_players[slot=1].credits_remaining。
 
-## 六个工具的公共契约
+## Agent 工具的公共契约
 
 | 工具 | 参数模型 | ToolResult.data |
 |---|---|---|
@@ -66,6 +66,7 @@ FieldEvidence.field_name 标识字段。status 表示 observed（直接观察）
 | simulate_buy_options | BuySimulationInput | BuyPlanComparison |
 | get_game_rules | GameRulesInput | GameRules |
 | lookup_tactics | TacticsInput | TacticQueryResult |
+| get_coaching_advice | CoachingAdviceInput | CoachingAdvice |
 | analyze_positions | PositionsInput | PositionAnalysis |
 
-五个业务载荷的字段名、可空性、嵌套和枚举详见 schemas/tool_contracts.py 与发布的 JSON Schema。经济聚合用 known_players 标识覆盖数，known_credits 是所选 time_basis 的已知总和，estimated 保留推测属性。方案按玩家保存 loadout 和 ability_status。区域人数和孤立玩家均关联 snapshot_id，以便区分多帧。
+业务载荷的字段名、可空性、嵌套和枚举详见 schemas/tool_contracts.py 与发布的 JSON Schema。经济聚合用 known_players 标识覆盖数，known_credits 是所选 time_basis 的已知总和，estimated 保留推测属性。方案按玩家保存 loadout 和 ability_status。区域人数和孤立玩家均关联 snapshot_id，以便区分多帧。

@@ -63,6 +63,8 @@ class MatchLlm(ILlmAdapter):
             data = json.loads(request.messages[-1].text.rsplit("\n\n", 1)[-1])
             task_id = request.messages[-1].text.splitlines()[0].removeprefix("task_id: ")
             if "current_round" in data:
+                advice = next(tool for tool in data["tools"] if tool["tool_name"] == "get_coaching_advice")
+                assert advice["data"]["entries"]
                 index = data["current_round"]["round_index"]
                 self.reviews.append(index)
                 assert len(data["prior_rounds"]) == index - 1
@@ -71,6 +73,7 @@ class MatchLlm(ILlmAdapter):
                     self.fail_review = None
                     raise LlmProviderError("temporary provider failure")
             else:
+                assert data["coaching_advice"]["data"]["entries"][0]["content"]["id"] == "S01"
                 self.summaries.append(data)
             result = CoachResponse(task_id=task_id, task_status="success", coach_summary="基于已分析回合的复盘。"
                                    ).model_dump(mode="json")

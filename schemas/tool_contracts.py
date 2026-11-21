@@ -1,7 +1,7 @@
-"""Wire contracts only. GPT-3 implements the five domain tools."""
+"""Wire contracts for the registered coach tools."""
 from typing import Literal, Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, JsonValue, model_validator
 
 from .common import Confidence, Contract, Count, MapId, Positive, Side, Slot, Team, Text
 from .evidence import FieldEvidence
@@ -46,6 +46,31 @@ class PositionsInput(Contract):
     position_snapshots: list[PositionSnapshot] = Field(min_length=1)
     map_id: MapId
     map_revision: Text | None
+
+
+AdviceSection = Literal["rules", "mechanics", "map_notes", "examples", "economy_calculation",
+                        "glossary", "round_record", "match_metrics", "reporting", "agent_instructions"]
+
+
+class CoachingAdviceInput(Contract):
+    query: Text = Field(max_length=240, description="中文场景关键词、中英文地图名或原文条目编号，如 T01")
+    section: AdviceSection | None = None
+    limit: int = Field(default=3, ge=1, le=5)
+
+
+class AdviceEntry(Contract):
+    section: AdviceSection
+    reference: Text  # JSON Pointer into source
+    title: Text
+    content: JsonValue
+
+
+class CoachingAdvice(Contract):
+    source: Text
+    version: Text
+    reference_patch: Text
+    scope: Text
+    entries: list[AdviceEntry]
 
 
 class TeamEconomy(Contract):
@@ -189,5 +214,6 @@ TOOL_CONTRACTS = {
     "simulate_buy_options": (BuySimulationInput, ToolResult[BuyPlanComparison]),
     "get_game_rules": (GameRulesInput, ToolResult[GameRules]),
     "lookup_tactics": (TacticsInput, ToolResult[TacticQueryResult]),
+    "get_coaching_advice": (CoachingAdviceInput, ToolResult[CoachingAdvice]),
     "analyze_positions": (PositionsInput, ToolResult[PositionAnalysis]),
 }
