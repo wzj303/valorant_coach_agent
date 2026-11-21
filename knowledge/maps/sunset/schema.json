@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Unverified Sunset prototype dataset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema_version", "dataset_id", "map_id", "name", "patch", "source_status", "provenance", "map_image_url", "coordinate_system", "regions", "adjacency_status", "edges", "sightlines_status", "sightlines", "tactical_annotations_status", "tactical_annotations", "limitations"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": "0.1.0" },
+    "dataset_id": { "const": "valorant.sunset.prototype" },
+    "map_id": { "const": "sunset" },
+    "name": { "const": "Sunset" },
+    "patch": { "type": "null" },
+    "source_status": { "const": "unverified" },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "map_image_url": { "type": "null" },
+    "coordinate_system": { "type": "null" },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "type", "coordinates", "source_status"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "type": { "enum": ["site", "area", "spawn"] },
+          "coordinates": { "type": "null" },
+          "source_status": { "const": "unverified" }
+        }
+      }
+    },
+    "adjacency_status": { "const": "unknown" },
+    "edges": { "type": "array", "maxItems": 0 },
+    "sightlines_status": { "const": "unknown" },
+    "sightlines": { "type": "array", "maxItems": 0 },
+    "tactical_annotations_status": { "const": "unknown" },
+    "tactical_annotations": { "type": "array", "maxItems": 0 },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+  },
+  "$defs": {
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_type", "source_title", "source_url", "retrieved_at", "verified_at", "verification_method", "notes"],
+      "properties": {
+        "source_type": { "const": "local_prototype_seed" },
+        "source_title": { "type": "string", "minLength": 1 },
+        "source_url": { "type": "null" },
+        "retrieved_at": { "type": "null" },
+        "verified_at": { "type": "null" },
+        "verification_method": { "type": "null" },
+        "notes": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

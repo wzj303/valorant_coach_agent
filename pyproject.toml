@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "valorant-coach-agent"
+version = "0.1.0"
+description = "Deterministic tactical analysis tools for VALORANT AI Coach"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.setuptools]
+packages = ["services", "tools", "tools.domain"]
