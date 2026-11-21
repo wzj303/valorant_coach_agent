@@ -1,0 +1,61 @@
+{
+  "$schema": "./schema.json",
+  "schema_version": "0.1.0",
+  "dataset_id": "valorant.economy.prototype",
+  "game": "VALORANT",
+  "game_mode": "standard_plant_defuse",
+  "patch": null,
+  "source_status": "unverified",
+  "provenance": {
+    "source_type": "local_prototype_seed",
+    "source_title": "Locally authored prototype vocabulary and unknown-value placeholders",
+    "source_url": null,
+    "retrieved_at": null,
+    "verified_at": null,
+    "verification_method": null,
+    "notes": "No external sources were consulted. Names and categories are unverified prototype vocabulary. Every numeric rule requires verification for the intended patch and mode before use."
+  },
+  "currency": "credits",
+  "credit_rules": [
+    { "id": "starting_credits", "value": null, "unit": "credits", "source_status": "unverified" },
+    { "id": "maximum_credits", "value": null, "unit": "credits", "source_status": "unverified" },
+    { "id": "round_win_reward", "value": null, "unit": "credits", "source_status": "unverified" },
+    { "id": "loss_reward_first", "value": null, "unit": "credits", "source_status": "unverified" },
+    { "id": "loss_reward_second", "value": null, "unit": "credits", "source_status": "unverified" },
+    { "id": "loss_reward_third_or_more", "value": null, "unit": "credits", "source_status": "unverified" },
+    { "id": "kill_reward", "value": null, "unit": "credits", "source_status": "unverified" },
+    { "id": "spike_plant_reward", "value": null, "unit": "credits", "source_status": "unverified" }
+  ],
+  "weapons": [
+    { "id": "classic", "name": "Classic", "category": "sidearm", "price": null, "source_status": "unverified" },
+    { "id": "shorty", "name": "Shorty", "category": "sidearm", "price": null, "source_status": "unverified" },
+    { "id": "frenzy", "name": "Frenzy", "category": "sidearm", "price": null, "source_status": "unverified" },
+    { "id": "ghost", "name": "Ghost", "category": "sidearm", "price": null, "source_status": "unverified" },
+    { "id": "sheriff", "name": "Sheriff", "category": "sidearm", "price": null, "source_status": "unverified" },
+    { "id": "stinger", "name": "Stinger", "category": "smg", "price": null, "source_status": "unverified" },
+    { "id": "spectre", "name": "Spectre", "category": "smg", "price": null, "source_status": "unverified" },
+    { "id": "bucky", "name": "Bucky", "category": "shotgun", "price": null, "source_status": "unverified" },
+    { "id": "judge", "name": "Judge", "category": "shotgun", "price": null, "source_status": "unverified" },
+    { "id": "bulldog", "name": "Bulldog", "category": "rifle", "price": null, "source_status": "unverified" },
+    { "id": "guardian", "name": "Guardian", "category": "rifle", "price": null, "source_status": "unverified" },
+    { "id": "phantom", "name": "Phantom", "category": "rifle", "price": null, "source_status": "unverified" },
+    { "id": "vandal", "name": "Vandal", "category": "rifle", "price": null, "source_status": "unverified" },
+    { "id": "marshal", "name": "Marshal", "category": "sniper", "price": null, "source_status": "unverified" },
+    { "id": "outlaw", "name": "Outlaw", "category": "sniper", "price": null, "source_status": "unverified" },
+    { "id": "operator", "name": "Operator", "category": "sniper", "price": null, "source_status": "unverified" },
+    { "id": "ares", "name": "Ares", "category": "machine_gun", "price": null, "source_status": "unverified" },
+    { "id": "odin", "name": "Odin", "category": "machine_gun", "price": null, "source_status": "unverified" }
+  ],
+  "armor": [
+    { "id": "light_shields", "name": "Light Shields", "price": null, "shield_points": null, "source_status": "unverified" },
+    { "id": "heavy_shields", "name": "Heavy Shields", "price": null, "shield_points": null, "source_status": "unverified" },
+    { "id": "regen_shield", "name": "Regen Shield", "price": null, "shield_points": null, "source_status": "unverified" }
+  ],
+  "abilities": [],
+  "limitations": [
+    "This vocabulary is incomplete and may differ from the live game.",
+    "Ability costs, loss-streak transitions, survival exceptions, overtime, refunds and side-switch rules are unknown.",
+    "Null means unknown. Never substitute zero or infer affordability from unknown prices.",
+    "All entries inherit the dataset provenance. There are no individually verified records."
+  ]
+}

@@ -1,5 +1,4 @@
-# Tool configuration only. The project is run from the repository root
-# (python -m agent ...) and is not packaged as a distribution.
+# Tool configuration for the repository-root project and the GPT-3 services.
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]

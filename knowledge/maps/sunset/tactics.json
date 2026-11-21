@@ -1,0 +1,20 @@
+{
+  "$schema": "./schema.json",
+  "schema_version": "0.1.0",
+  "dataset_id": "valorant.sunset.tactics.prototype",
+  "map_id": "sunset",
+  "patch": null,
+  "source_status": "unverified",
+  "provenance": {
+    "source_type": "local_prototype_seed",
+    "source_title": "Locally authored tactical placeholder records",
+    "source_url": null,
+    "retrieved_at": null,
+    "verified_at": null,
+    "verification_method": null,
+    "notes": "These entries are placeholders for interface and filtering tests. They are not gameplay recommendations until verified."
+  },
+  "entries": [
+    {"id": "sunset_unknown", "category": "general", "title": "Sunset tactical knowledge pending verification", "text": "No verified tactical recommendation is available in the local dataset.", "source_status": "unverified"}
+  ]
+}

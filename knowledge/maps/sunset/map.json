@@ -1,0 +1,40 @@
+{
+  "$schema": "./schema.json",
+  "schema_version": "0.1.0",
+  "dataset_id": "valorant.sunset.prototype",
+  "map_id": "sunset",
+  "name": "Sunset",
+  "patch": null,
+  "source_status": "unverified",
+  "provenance": {
+    "source_type": "local_prototype_seed",
+    "source_title": "Locally authored Sunset region vocabulary and unknown-value placeholders",
+    "source_url": null,
+    "retrieved_at": null,
+    "verified_at": null,
+    "verification_method": null,
+    "notes": "No map image, official map reference, community callout resource or live game was consulted. Region names are provisional vocabulary awaiting verification."
+  },
+  "map_image_url": null,
+  "coordinate_system": null,
+  "regions": [
+    { "id": "a_site", "name": "A Site", "type": "site", "coordinates": null, "source_status": "unverified" },
+    { "id": "b_site", "name": "B Site", "type": "site", "coordinates": null, "source_status": "unverified" },
+    { "id": "mid", "name": "Mid", "type": "area", "coordinates": null, "source_status": "unverified" },
+    { "id": "attacker_spawn", "name": "Attacker Spawn", "type": "spawn", "coordinates": null, "source_status": "unverified" },
+    { "id": "defender_spawn", "name": "Defender Spawn", "type": "spawn", "coordinates": null, "source_status": "unverified" }
+  ],
+  "adjacency_status": "unknown",
+  "edges": [],
+  "sightlines_status": "unknown",
+  "sightlines": [],
+  "tactical_annotations_status": "unknown",
+  "tactical_annotations": [],
+  "limitations": [
+    "The region vocabulary is incomplete and unverified.",
+    "Empty edges and sightlines mean unknown coverage. They do not establish disconnected regions or blocked visibility.",
+    "Coordinates, travel times, distances, angles, elevation and map image links are unknown.",
+    "No site-control, rotation, positioning or line-of-sight conclusion can be derived from this seed.",
+    "All region entries inherit the dataset provenance. There are no individually verified records."
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Unverified VALORANT economy prototype dataset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema_version", "dataset_id", "game", "game_mode", "patch", "source_status", "provenance", "currency", "credit_rules", "weapons", "armor", "abilities", "limitations"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": "0.1.0" },
+    "dataset_id": { "const": "valorant.economy.prototype" },
+    "game": { "const": "VALORANT" },
+    "game_mode": { "const": "standard_plant_defuse" },
+    "patch": { "type": "null" },
+    "source_status": { "const": "unverified" },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "currency": { "const": "credits" },
+    "credit_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "value", "unit", "source_status"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "value": { "type": "null" },
+          "unit": { "const": "credits" },
+          "source_status": { "const": "unverified" }
+        }
+      }
+    },
+    "weapons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "category", "price", "source_status"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "category": { "enum": ["sidearm", "smg", "shotgun", "rifle", "sniper", "machine_gun"] },
+          "price": { "type": "null" },
+          "source_status": { "const": "unverified" }
+        }
+      }
+    },
+    "armor": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "price", "shield_points", "source_status"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "price": { "type": "null" },
+          "shield_points": { "type": "null" },
+          "source_status": { "const": "unverified" }
+        }
+      }
+    },
+    "abilities": { "type": "array", "maxItems": 0 },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+  },
+  "$defs": {
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_type", "source_title", "source_url", "retrieved_at", "verified_at", "verification_method", "notes"],
+      "properties": {
+        "source_type": { "const": "local_prototype_seed" },
+        "source_title": { "type": "string", "minLength": 1 },
+        "source_url": { "type": "null" },
+        "retrieved_at": { "type": "null" },
+        "verified_at": { "type": "null" },
+        "verification_method": { "type": "null" },
+        "notes": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
