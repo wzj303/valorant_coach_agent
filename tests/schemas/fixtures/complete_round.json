@@ -1,0 +1,625 @@
+{
+  "match_id": "fixture-match",
+  "round_id": "example-round",
+  "round_index": 4,
+  "map_id": "sunset",
+  "map_revision": "fixture-r1",
+  "game_patch": "fixture-patch",
+  "side": "defense",
+  "round_phase": "buy",
+  "score": {
+    "ally": 2,
+    "enemy": 1
+  },
+  "ally_loss_streak": 0,
+  "enemy_loss_streak": 1,
+  "evidence": [
+    {
+      "field_name": "game_patch",
+      "status": "user_confirmed",
+      "source": "user_input"
+    },
+    {
+      "field_name": "map_revision",
+      "status": "user_confirmed",
+      "source": "user_input"
+    },
+    {
+      "field_name": "side",
+      "status": "user_confirmed",
+      "source": "user_input"
+    },
+    {
+      "field_name": "round_phase",
+      "status": "user_confirmed",
+      "source": "user_input"
+    },
+    {
+      "field_name": "score.ally",
+      "status": "user_confirmed",
+      "source": "user_input"
+    },
+    {
+      "field_name": "score.enemy",
+      "status": "user_confirmed",
+      "source": "user_input"
+    },
+    {
+      "field_name": "ally_loss_streak",
+      "status": "user_confirmed",
+      "source": "user_input"
+    },
+    {
+      "field_name": "enemy_loss_streak",
+      "status": "user_confirmed",
+      "source": "user_input"
+    }
+  ],
+  "ally_players": [
+    {
+      "slot": 1,
+      "team": "ally",
+      "agent": "Jett",
+      "role": "duelist",
+      "credits_before_buy": 4500,
+      "credits_remaining": 400,
+      "weapon": "Vandal",
+      "secondary_weapon": "Classic",
+      "armor": "light",
+      "abilities": {
+        "Updraft": true
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "secondary_weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "armor",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "role",
+          "status": "inferred",
+          "source": "model_inference"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_remaining",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    },
+    {
+      "slot": 2,
+      "team": "ally",
+      "agent": "Omen",
+      "role": "controller",
+      "credits_before_buy": 4500,
+      "credits_remaining": 410,
+      "weapon": "Phantom",
+      "secondary_weapon": "Classic",
+      "armor": "light",
+      "abilities": {
+        "Paranoia": false
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "secondary_weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "armor",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "role",
+          "status": "inferred",
+          "source": "model_inference"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_remaining",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    },
+    {
+      "slot": 3,
+      "team": "ally",
+      "agent": "Sova",
+      "role": "initiator",
+      "credits_before_buy": 4500,
+      "credits_remaining": 420,
+      "weapon": "Vandal",
+      "secondary_weapon": "Classic",
+      "armor": "light",
+      "abilities": {
+        "Shock Bolt": true
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "secondary_weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "armor",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "role",
+          "status": "inferred",
+          "source": "model_inference"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_remaining",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    },
+    {
+      "slot": 4,
+      "team": "ally",
+      "agent": "Cypher",
+      "role": "sentinel",
+      "credits_before_buy": 4500,
+      "credits_remaining": 430,
+      "weapon": "Phantom",
+      "secondary_weapon": "Classic",
+      "armor": "light",
+      "abilities": {
+        "Trapwire": false
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "secondary_weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "armor",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "role",
+          "status": "inferred",
+          "source": "model_inference"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_remaining",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    },
+    {
+      "slot": 5,
+      "team": "ally",
+      "agent": "Raze",
+      "role": "duelist",
+      "credits_before_buy": 4500,
+      "credits_remaining": 440,
+      "weapon": "Vandal",
+      "secondary_weapon": "Classic",
+      "armor": "light",
+      "abilities": {
+        "Blast Pack": true
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "secondary_weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "armor",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "role",
+          "status": "inferred",
+          "source": "model_inference"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_remaining",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    }
+  ],
+  "enemy_players": [
+    {
+      "slot": 1,
+      "team": "enemy",
+      "agent": "Sage",
+      "role": "sentinel",
+      "credits_before_buy": 4500,
+      "credits_remaining": 450,
+      "weapon": "Phantom",
+      "secondary_weapon": "Classic",
+      "armor": "light",
+      "abilities": {
+        "Barrier Orb": false
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "secondary_weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "armor",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "role",
+          "status": "inferred",
+          "source": "model_inference"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_remaining",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    },
+    {
+      "slot": 2,
+      "team": "enemy",
+      "agent": "Viper",
+      "role": "controller",
+      "credits_before_buy": 4500,
+      "credits_remaining": 460,
+      "weapon": "Vandal",
+      "secondary_weapon": "Classic",
+      "armor": "light",
+      "abilities": {
+        "Poison Cloud": true
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "secondary_weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "armor",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "role",
+          "status": "inferred",
+          "source": "model_inference"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_remaining",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    },
+    {
+      "slot": 3,
+      "team": "enemy",
+      "agent": "Reyna",
+      "role": "duelist",
+      "credits_before_buy": 4500,
+      "credits_remaining": 470,
+      "weapon": "Phantom",
+      "secondary_weapon": "Classic",
+      "armor": "light",
+      "abilities": {
+        "Leer": false
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "secondary_weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "armor",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "role",
+          "status": "inferred",
+          "source": "model_inference"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_remaining",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    },
+    {
+      "slot": 4,
+      "team": "enemy",
+      "agent": "Breach",
+      "role": "initiator",
+      "credits_before_buy": 4500,
+      "credits_remaining": 480,
+      "weapon": "Vandal",
+      "secondary_weapon": "Classic",
+      "armor": "light",
+      "abilities": {
+        "Aftershock": true
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "secondary_weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "armor",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "role",
+          "status": "inferred",
+          "source": "model_inference"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_remaining",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    },
+    {
+      "slot": 5,
+      "team": "enemy",
+      "agent": "Phoenix",
+      "role": "duelist",
+      "credits_before_buy": 4500,
+      "credits_remaining": 490,
+      "weapon": "Phantom",
+      "secondary_weapon": "Classic",
+      "armor": "light",
+      "abilities": {
+        "Curveball": false
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "secondary_weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "armor",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "role",
+          "status": "inferred",
+          "source": "model_inference"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_remaining",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    }
+  ],
+  "user_notes": [
+    "Synthetic QA fixture. Source labels simulate observations."
+  ]
+}

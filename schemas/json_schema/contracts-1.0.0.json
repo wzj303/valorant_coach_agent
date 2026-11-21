@@ -1,0 +1,2734 @@
+{
+  "$defs": {
+    "AnalysisContext": {
+      "additionalProperties": false,
+      "properties": {
+        "task_id": {
+          "minLength": 1,
+          "title": "Task Id",
+          "type": "string"
+        },
+        "task_type": {
+          "enum": [
+            "buy_review",
+            "position_review",
+            "match_review"
+          ],
+          "title": "Task Type",
+          "type": "string"
+        },
+        "match_id": {
+          "minLength": 1,
+          "title": "Match Id",
+          "type": "string"
+        },
+        "round_snapshots": {
+          "items": {
+            "$ref": "#/$defs/RoundSnapshot"
+          },
+          "title": "Round Snapshots",
+          "type": "array"
+        },
+        "position_snapshots": {
+          "items": {
+            "$ref": "#/$defs/PositionSnapshot"
+          },
+          "title": "Position Snapshots",
+          "type": "array"
+        },
+        "user_observations": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "User Observations",
+          "type": "array"
+        },
+        "previous_analysis": {
+          "items": {
+            "$ref": "#/$defs/CoachResponse"
+          },
+          "title": "Previous Analysis",
+          "type": "array"
+        },
+        "data_quality": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DataQuality"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "task_id",
+        "task_type",
+        "match_id"
+      ],
+      "title": "AnalysisContext",
+      "type": "object"
+    },
+    "BuyConstraints": {
+      "additionalProperties": false,
+      "properties": {
+        "preserve_next_round_economy": {
+          "default": true,
+          "title": "Preserve Next Round Economy",
+          "type": "boolean"
+        },
+        "team_coordinated_buy": {
+          "default": true,
+          "title": "Team Coordinated Buy",
+          "type": "boolean"
+        }
+      },
+      "title": "BuyConstraints",
+      "type": "object"
+    },
+    "BuyPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "plan_id": {
+          "minLength": 1,
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "strategy": {
+          "enum": [
+            "full_buy",
+            "half_buy",
+            "eco"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "feasible": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Feasible"
+        },
+        "players": {
+          "items": {
+            "$ref": "#/$defs/PlayerPlan"
+          },
+          "title": "Players",
+          "type": "array"
+        },
+        "total_spend": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Total Spend"
+        },
+        "remaining_credits": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Remaining Credits"
+        },
+        "next_round_projection": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Next Round Projection"
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "assumptions": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Assumptions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "plan_id",
+        "strategy",
+        "feasible",
+        "players",
+        "total_spend",
+        "remaining_credits",
+        "next_round_projection",
+        "warnings",
+        "assumptions"
+      ],
+      "title": "BuyPlan",
+      "type": "object"
+    },
+    "BuyPlanComparison": {
+      "additionalProperties": false,
+      "properties": {
+        "plans": {
+          "items": {
+            "$ref": "#/$defs/BuyPlan"
+          },
+          "title": "Plans",
+          "type": "array"
+        }
+      },
+      "required": [
+        "plans"
+      ],
+      "title": "BuyPlanComparison",
+      "type": "object"
+    },
+    "BuySimulationInput": {
+      "additionalProperties": false,
+      "properties": {
+        "round_snapshot": {
+          "$ref": "#/$defs/RoundSnapshot"
+        },
+        "strategies": {
+          "items": {
+            "enum": [
+              "full_buy",
+              "half_buy",
+              "eco"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Strategies",
+          "type": "array"
+        },
+        "constraints": {
+          "$ref": "#/$defs/BuyConstraints"
+        }
+      },
+      "required": [
+        "round_snapshot",
+        "strategies"
+      ],
+      "title": "BuySimulationInput",
+      "type": "object"
+    },
+    "BuyStateAnalysis": {
+      "additionalProperties": false,
+      "properties": {
+        "ally_economy": {
+          "$ref": "#/$defs/TeamEconomy"
+        },
+        "enemy_economy": {
+          "$ref": "#/$defs/TeamEconomy"
+        },
+        "weapon_distribution": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "propertyNames": {
+              "minLength": 1
+            },
+            "type": "object"
+          },
+          "propertyNames": {
+            "enum": [
+              "ally",
+              "enemy"
+            ]
+          },
+          "title": "Weapon Distribution",
+          "type": "object"
+        },
+        "armor_distribution": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "propertyNames": {
+              "minLength": 1
+            },
+            "type": "object"
+          },
+          "propertyNames": {
+            "enum": [
+              "ally",
+              "enemy"
+            ]
+          },
+          "title": "Armor Distribution",
+          "type": "object"
+        },
+        "ability_completeness": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "ally",
+              "enemy"
+            ]
+          },
+          "title": "Ability Completeness",
+          "type": "object"
+        },
+        "buy_type": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "ally",
+              "enemy"
+            ]
+          },
+          "title": "Buy Type",
+          "type": "object"
+        },
+        "team_buy_coordination": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Team Buy Coordination"
+        },
+        "equipment_value": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "ally",
+              "enemy"
+            ]
+          },
+          "title": "Equipment Value",
+          "type": "object"
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "ally_economy",
+        "enemy_economy",
+        "weapon_distribution",
+        "armor_distribution",
+        "ability_completeness",
+        "buy_type",
+        "team_buy_coordination",
+        "equipment_value",
+        "warnings",
+        "evidence"
+      ],
+      "title": "BuyStateAnalysis",
+      "type": "object"
+    },
+    "BuyStateInput": {
+      "additionalProperties": false,
+      "properties": {
+        "round_snapshot": {
+          "$ref": "#/$defs/RoundSnapshot"
+        }
+      },
+      "required": [
+        "round_snapshot"
+      ],
+      "title": "BuyStateInput",
+      "type": "object"
+    },
+    "CoachResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "task_id": {
+          "minLength": 1,
+          "title": "Task Id",
+          "type": "string"
+        },
+        "task_status": {
+          "enum": [
+            "success",
+            "partial",
+            "failed"
+          ],
+          "title": "Task Status",
+          "type": "string"
+        },
+        "overall_judgement": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Overall Judgement"
+        },
+        "buy_review": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Buy Review"
+        },
+        "position_review": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Review"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/Finding"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "recommendations": {
+          "items": {
+            "$ref": "#/$defs/Recommendation"
+          },
+          "maxItems": 3,
+          "title": "Recommendations",
+          "type": "array"
+        },
+        "missing_information": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Missing Information",
+          "type": "array"
+        },
+        "coach_summary": {
+          "minLength": 1,
+          "title": "Coach Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "task_status",
+        "coach_summary"
+      ],
+      "title": "CoachResponse",
+      "type": "object"
+    },
+    "DataQuality": {
+      "additionalProperties": false,
+      "properties": {
+        "completeness": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Completeness"
+        },
+        "missing_fields": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Missing Fields",
+          "type": "array"
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "title": "DataQuality",
+      "type": "object"
+    },
+    "FieldEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "field_name": {
+          "minLength": 1,
+          "title": "Field Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "observed",
+            "inferred",
+            "user_confirmed",
+            "derived",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "screenshot",
+            "user_input",
+            "tool",
+            "model_inference",
+            "unknown"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        }
+      },
+      "required": [
+        "field_name",
+        "status",
+        "source"
+      ],
+      "title": "FieldEvidence",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "explanation": {
+          "minLength": 1,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        }
+      },
+      "required": [
+        "title",
+        "severity",
+        "explanation",
+        "evidence_refs"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "FrameSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_id": {
+          "minLength": 1,
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "counts": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "ally",
+                "enemy"
+              ]
+            },
+            "type": "object"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Counts",
+          "type": "object"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "counts"
+      ],
+      "title": "FrameSummary",
+      "type": "object"
+    },
+    "GameRules": {
+      "additionalProperties": false,
+      "properties": {
+        "game_patch": {
+          "minLength": 1,
+          "title": "Game Patch",
+          "type": "string"
+        },
+        "weapon_prices": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "propertyNames": {
+                "minLength": 1
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Weapon Prices"
+        },
+        "armor_prices": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "propertyNames": {
+                "minLength": 1
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Armor Prices"
+        },
+        "ability_prices": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "propertyNames": {
+                "minLength": 1
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ability Prices"
+        },
+        "round_economy_rules": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "propertyNames": {
+                "minLength": 1
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Round Economy Rules"
+        },
+        "loss_bonus_rules": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "propertyNames": {
+                "minLength": 1
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Loss Bonus Rules"
+        },
+        "kill_rewards": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "propertyNames": {
+                "minLength": 1
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Kill Rewards"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source"
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Verified At"
+        },
+        "completeness": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Completeness",
+          "type": "number"
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "game_patch",
+        "weapon_prices",
+        "armor_prices",
+        "ability_prices",
+        "round_economy_rules",
+        "loss_bonus_rules",
+        "kill_rewards",
+        "source",
+        "verified_at",
+        "completeness",
+        "warnings"
+      ],
+      "title": "GameRules",
+      "type": "object"
+    },
+    "GameRulesInput": {
+      "additionalProperties": false,
+      "properties": {
+        "game_patch": {
+          "minLength": 1,
+          "title": "Game Patch",
+          "type": "string"
+        },
+        "rule_categories": {
+          "items": {
+            "enum": [
+              "economy",
+              "weapons",
+              "armor",
+              "abilities"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Rule Categories",
+          "type": "array"
+        }
+      },
+      "required": [
+        "game_patch",
+        "rule_categories"
+      ],
+      "title": "GameRulesInput",
+      "type": "object"
+    },
+    "MatchReport": {
+      "additionalProperties": false,
+      "properties": {
+        "match_id": {
+          "minLength": 1,
+          "title": "Match Id",
+          "type": "string"
+        },
+        "analyzed_rounds": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Analyzed Rounds",
+          "type": "array"
+        },
+        "strengths": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Strengths",
+          "type": "array"
+        },
+        "recurring_problems": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Recurring Problems",
+          "type": "array"
+        },
+        "improvement_plan": {
+          "items": {
+            "$ref": "#/$defs/Recommendation"
+          },
+          "title": "Improvement Plan",
+          "type": "array"
+        },
+        "final_summary": {
+          "minLength": 1,
+          "title": "Final Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "match_id",
+        "analyzed_rounds",
+        "final_summary"
+      ],
+      "title": "MatchReport",
+      "type": "object"
+    },
+    "PlayerDistance": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_id": {
+          "minLength": 1,
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "first": {
+          "$ref": "#/$defs/PlayerRef"
+        },
+        "second": {
+          "$ref": "#/$defs/PlayerRef"
+        },
+        "distance": {
+          "minimum": 0,
+          "title": "Distance",
+          "type": "number"
+        },
+        "unit": {
+          "enum": [
+            "normalized",
+            "pixel"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "first",
+        "second",
+        "distance",
+        "unit"
+      ],
+      "title": "PlayerDistance",
+      "type": "object"
+    },
+    "PlayerPair": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_id": {
+          "minLength": 1,
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "first": {
+          "$ref": "#/$defs/PlayerRef"
+        },
+        "second": {
+          "$ref": "#/$defs/PlayerRef"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "first",
+        "second"
+      ],
+      "title": "PlayerPair",
+      "type": "object"
+    },
+    "PlayerPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "slot": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Slot",
+          "type": "integer"
+        },
+        "team": {
+          "enum": [
+            "ally",
+            "enemy"
+          ],
+          "title": "Team",
+          "type": "string"
+        },
+        "spend": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Spend"
+        },
+        "remaining_credits": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Remaining Credits"
+        },
+        "loadout": {
+          "anyOf": [
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Loadout"
+        },
+        "ability_status": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "propertyNames": {
+                "minLength": 1
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ability Status"
+        }
+      },
+      "required": [
+        "slot",
+        "team",
+        "spend",
+        "remaining_credits",
+        "loadout",
+        "ability_status"
+      ],
+      "title": "PlayerPlan",
+      "type": "object"
+    },
+    "PlayerPosition": {
+      "additionalProperties": false,
+      "properties": {
+        "slot": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Slot",
+          "type": "integer"
+        },
+        "team": {
+          "enum": [
+            "ally",
+            "enemy"
+          ],
+          "title": "Team",
+          "type": "string"
+        },
+        "agent": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent"
+        },
+        "x": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "X"
+        },
+        "y": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Y"
+        },
+        "region": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region"
+        },
+        "status": {
+          "enum": [
+            "observed",
+            "inferred",
+            "user_confirmed",
+            "derived",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        }
+      },
+      "required": [
+        "slot",
+        "team",
+        "status"
+      ],
+      "title": "PlayerPosition",
+      "type": "object"
+    },
+    "PlayerRef": {
+      "additionalProperties": false,
+      "properties": {
+        "team": {
+          "enum": [
+            "ally",
+            "enemy"
+          ],
+          "title": "Team",
+          "type": "string"
+        },
+        "slot": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Slot",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "team",
+        "slot"
+      ],
+      "title": "PlayerRef",
+      "type": "object"
+    },
+    "PlayerSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "slot": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Slot",
+          "type": "integer"
+        },
+        "team": {
+          "enum": [
+            "ally",
+            "enemy"
+          ],
+          "title": "Team",
+          "type": "string"
+        },
+        "agent": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "enum": [
+                "duelist",
+                "initiator",
+                "controller",
+                "sentinel"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "credits_before_buy": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Credits Before Buy"
+        },
+        "credits_remaining": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Credits Remaining"
+        },
+        "credits_unclassified": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Credits with an unreadable or unspecified time basis.",
+          "title": "Credits Unclassified"
+        },
+        "credit_exception_note": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Credit Exception Note"
+        },
+        "weapon": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^[^/|,;+\\n\\r]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weapon"
+        },
+        "secondary_weapon": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^[^/|,;+\\n\\r]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Secondary Weapon"
+        },
+        "armor": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "light",
+                "heavy",
+                "regen"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Armor"
+        },
+        "abilities": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "propertyNames": {
+                "minLength": 1
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Abilities"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "slot",
+        "team"
+      ],
+      "title": "PlayerSnapshot",
+      "type": "object"
+    },
+    "PositionAnalysis": {
+      "additionalProperties": false,
+      "properties": {
+        "region_distribution": {
+          "items": {
+            "$ref": "#/$defs/FrameSummary"
+          },
+          "title": "Region Distribution",
+          "type": "array"
+        },
+        "player_distances": {
+          "items": {
+            "$ref": "#/$defs/PlayerDistance"
+          },
+          "title": "Player Distances",
+          "type": "array"
+        },
+        "isolated_players": {
+          "additionalProperties": {
+            "items": {
+              "$ref": "#/$defs/PlayerRef"
+            },
+            "type": "array"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Isolated Players",
+          "type": "object"
+        },
+        "support_candidates": {
+          "items": {
+            "$ref": "#/$defs/PlayerPair"
+          },
+          "title": "Support Candidates",
+          "type": "array"
+        },
+        "formation_summary": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Formation Summary"
+        },
+        "changes_between_snapshots": {
+          "items": {
+            "$ref": "#/$defs/PositionChange"
+          },
+          "title": "Changes Between Snapshots",
+          "type": "array"
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "region_distribution",
+        "player_distances",
+        "isolated_players",
+        "support_candidates",
+        "formation_summary",
+        "changes_between_snapshots",
+        "warnings",
+        "evidence"
+      ],
+      "title": "PositionAnalysis",
+      "type": "object"
+    },
+    "PositionChange": {
+      "additionalProperties": false,
+      "properties": {
+        "from_snapshot_id": {
+          "minLength": 1,
+          "title": "From Snapshot Id",
+          "type": "string"
+        },
+        "to_snapshot_id": {
+          "minLength": 1,
+          "title": "To Snapshot Id",
+          "type": "string"
+        },
+        "player": {
+          "$ref": "#/$defs/PlayerRef"
+        },
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_snapshot_id",
+        "to_snapshot_id",
+        "player",
+        "description"
+      ],
+      "title": "PositionChange",
+      "type": "object"
+    },
+    "PositionSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_id": {
+          "minLength": 1,
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "round_id": {
+          "minLength": 1,
+          "title": "Round Id",
+          "type": "string"
+        },
+        "map_id": {
+          "const": "sunset",
+          "title": "Map Id",
+          "type": "string"
+        },
+        "map_revision": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Map Revision"
+        },
+        "timestamp_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Timestamp Ms"
+        },
+        "coordinate_system": {
+          "anyOf": [
+            {
+              "enum": [
+                "normalized",
+                "pixel",
+                "region_only"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coordinate System"
+        },
+        "players": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PlayerPosition"
+              },
+              "maxItems": 10,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Players"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "round_id",
+        "map_id",
+        "map_revision"
+      ],
+      "title": "PositionSnapshot",
+      "type": "object"
+    },
+    "PositionsInput": {
+      "additionalProperties": false,
+      "properties": {
+        "position_snapshots": {
+          "items": {
+            "$ref": "#/$defs/PositionSnapshot"
+          },
+          "minItems": 1,
+          "title": "Position Snapshots",
+          "type": "array"
+        },
+        "map_id": {
+          "const": "sunset",
+          "title": "Map Id",
+          "type": "string"
+        },
+        "map_revision": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Map Revision"
+        }
+      },
+      "required": [
+        "position_snapshots",
+        "map_id",
+        "map_revision"
+      ],
+      "title": "PositionsInput",
+      "type": "object"
+    },
+    "Recommendation": {
+      "additionalProperties": false,
+      "properties": {
+        "priority": {
+          "minimum": 1,
+          "title": "Priority",
+          "type": "integer"
+        },
+        "action": {
+          "minLength": 1,
+          "title": "Action",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "expected_benefit": {
+          "minLength": 1,
+          "title": "Expected Benefit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "priority",
+        "action",
+        "reason",
+        "expected_benefit"
+      ],
+      "title": "Recommendation",
+      "type": "object"
+    },
+    "RoundSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "match_id": {
+          "minLength": 1,
+          "title": "Match Id",
+          "type": "string"
+        },
+        "round_id": {
+          "minLength": 1,
+          "title": "Round Id",
+          "type": "string"
+        },
+        "round_index": {
+          "minimum": 1,
+          "title": "Round Index",
+          "type": "integer"
+        },
+        "map_id": {
+          "const": "sunset",
+          "title": "Map Id",
+          "type": "string"
+        },
+        "map_revision": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Map Revision"
+        },
+        "game_patch": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Game Patch"
+        },
+        "side": {
+          "anyOf": [
+            {
+              "enum": [
+                "attack",
+                "defense"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Side"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Score"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "round_phase": {
+          "anyOf": [
+            {
+              "enum": [
+                "buy",
+                "live",
+                "post_round"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Round Phase"
+        },
+        "ally_players": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PlayerSnapshot"
+              },
+              "maxItems": 5,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ally Players"
+        },
+        "enemy_players": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PlayerSnapshot"
+              },
+              "maxItems": 5,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Enemy Players"
+        },
+        "ally_loss_streak": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ally Loss Streak"
+        },
+        "enemy_loss_streak": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Enemy Loss Streak"
+        },
+        "data_quality": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DataQuality"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_images": {
+          "anyOf": [
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Images"
+        },
+        "user_notes": {
+          "anyOf": [
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "User Notes"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "match_id",
+        "round_id",
+        "round_index",
+        "map_id",
+        "map_revision"
+      ],
+      "title": "RoundSnapshot",
+      "type": "object"
+    },
+    "Score": {
+      "additionalProperties": false,
+      "properties": {
+        "ally": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ally"
+        },
+        "enemy": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Enemy"
+        }
+      },
+      "title": "Score",
+      "type": "object"
+    },
+    "TacticEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "rule_id": {
+          "minLength": 1,
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "content": {
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "applicable_conditions": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Applicable Conditions",
+          "type": "array"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "map_revision": {
+          "minLength": 1,
+          "title": "Map Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule_id",
+        "title",
+        "content",
+        "applicable_conditions",
+        "source",
+        "map_revision"
+      ],
+      "title": "TacticEntry",
+      "type": "object"
+    },
+    "TacticQueryResult": {
+      "additionalProperties": false,
+      "properties": {
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/TacticEntry"
+          },
+          "title": "Entries",
+          "type": "array"
+        },
+        "map_id": {
+          "const": "sunset",
+          "title": "Map Id",
+          "type": "string"
+        },
+        "map_revision": {
+          "minLength": 1,
+          "title": "Map Revision",
+          "type": "string"
+        },
+        "matched_count": {
+          "minimum": 0,
+          "title": "Matched Count",
+          "type": "integer"
+        },
+        "truncated": {
+          "title": "Truncated",
+          "type": "boolean"
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "entries",
+        "map_id",
+        "map_revision",
+        "matched_count",
+        "truncated",
+        "warnings"
+      ],
+      "title": "TacticQueryResult",
+      "type": "object"
+    },
+    "TacticsInput": {
+      "additionalProperties": false,
+      "properties": {
+        "map_id": {
+          "const": "sunset",
+          "title": "Map Id",
+          "type": "string"
+        },
+        "map_revision": {
+          "minLength": 1,
+          "title": "Map Revision",
+          "type": "string"
+        },
+        "side": {
+          "anyOf": [
+            {
+              "enum": [
+                "attack",
+                "defense"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Side"
+        },
+        "agents": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Agents",
+          "type": "array"
+        },
+        "query": {
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 5,
+          "maximum": 25,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "map_id",
+        "map_revision",
+        "query"
+      ],
+      "title": "TacticsInput",
+      "type": "object"
+    },
+    "TeamEconomy": {
+      "additionalProperties": false,
+      "properties": {
+        "known_credits": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Known Credits"
+        },
+        "known_players": {
+          "maximum": 5,
+          "minimum": 0,
+          "title": "Known Players",
+          "type": "integer"
+        },
+        "time_basis": {
+          "enum": [
+            "before_buy",
+            "remaining"
+          ],
+          "title": "Time Basis",
+          "type": "string"
+        },
+        "estimated": {
+          "title": "Estimated",
+          "type": "boolean"
+        },
+        "complete": {
+          "title": "Complete",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "known_credits",
+        "known_players",
+        "time_basis",
+        "estimated",
+        "complete"
+      ],
+      "title": "TeamEconomy",
+      "type": "object"
+    },
+    "ToolResult_BuyPlanComparison_": {
+      "additionalProperties": false,
+      "properties": {
+        "tool_name": {
+          "minLength": 1,
+          "title": "Tool Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "success",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BuyPlanComparison"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "errors": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tool_name",
+        "status",
+        "data"
+      ],
+      "title": "ToolResult[BuyPlanComparison]",
+      "type": "object"
+    },
+    "ToolResult_BuyStateAnalysis_": {
+      "additionalProperties": false,
+      "properties": {
+        "tool_name": {
+          "minLength": 1,
+          "title": "Tool Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "success",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BuyStateAnalysis"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "errors": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tool_name",
+        "status",
+        "data"
+      ],
+      "title": "ToolResult[BuyStateAnalysis]",
+      "type": "object"
+    },
+    "ToolResult_GameRules_": {
+      "additionalProperties": false,
+      "properties": {
+        "tool_name": {
+          "minLength": 1,
+          "title": "Tool Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "success",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GameRules"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "errors": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tool_name",
+        "status",
+        "data"
+      ],
+      "title": "ToolResult[GameRules]",
+      "type": "object"
+    },
+    "ToolResult_PositionAnalysis_": {
+      "additionalProperties": false,
+      "properties": {
+        "tool_name": {
+          "minLength": 1,
+          "title": "Tool Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "success",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PositionAnalysis"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "errors": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tool_name",
+        "status",
+        "data"
+      ],
+      "title": "ToolResult[PositionAnalysis]",
+      "type": "object"
+    },
+    "ToolResult_TacticQueryResult_": {
+      "additionalProperties": false,
+      "properties": {
+        "tool_name": {
+          "minLength": 1,
+          "title": "Tool Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "success",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TacticQueryResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "errors": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tool_name",
+        "status",
+        "data"
+      ],
+      "title": "ToolResult[TacticQueryResult]",
+      "type": "object"
+    },
+    "ToolResult_ValidationResult_": {
+      "additionalProperties": false,
+      "properties": {
+        "tool_name": {
+          "minLength": 1,
+          "title": "Tool Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "success",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ValidationResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "errors": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tool_name",
+        "status",
+        "data"
+      ],
+      "title": "ToolResult[ValidationResult]",
+      "type": "object"
+    },
+    "ValidateRoundInput": {
+      "additionalProperties": false,
+      "properties": {
+        "round_snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoundSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "position_snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PositionSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "strict_mode": {
+          "default": false,
+          "title": "Strict Mode",
+          "type": "boolean"
+        }
+      },
+      "title": "ValidateRoundInput",
+      "type": "object"
+    },
+    "ValidationResult": {
+      "additionalProperties": false,
+      "properties": {
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        },
+        "completeness": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Completeness"
+        },
+        "missing_fields": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Missing Fields",
+          "type": "array"
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "errors": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "normalized_snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoundSnapshot"
+            },
+            {
+              "$ref": "#/$defs/PositionSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Normalized Snapshot"
+        },
+        "normalized_position_snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PositionSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "valid",
+        "completeness"
+      ],
+      "title": "ValidationResult",
+      "type": "object"
+    }
+  },
+  "title": "VALORANT AI Coach 1.0.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "x-contract-version": "1.0.0",
+  "x-models": {
+    "AnalysisContext": {
+      "$ref": "#/$defs/AnalysisContext"
+    },
+    "CoachResponse": {
+      "$ref": "#/$defs/CoachResponse"
+    },
+    "FieldEvidence": {
+      "$ref": "#/$defs/FieldEvidence"
+    },
+    "MatchReport": {
+      "$ref": "#/$defs/MatchReport"
+    },
+    "PlayerSnapshot": {
+      "$ref": "#/$defs/PlayerSnapshot"
+    },
+    "PositionSnapshot": {
+      "$ref": "#/$defs/PositionSnapshot"
+    },
+    "RoundSnapshot": {
+      "$ref": "#/$defs/RoundSnapshot"
+    },
+    "ValidationResult": {
+      "$ref": "#/$defs/ValidationResult"
+    },
+    "ValidateRoundInput": {
+      "$ref": "#/$defs/ValidateRoundInput"
+    },
+    "ToolResult[ValidationResult]": {
+      "$ref": "#/$defs/ToolResult_ValidationResult_"
+    },
+    "BuyStateInput": {
+      "$ref": "#/$defs/BuyStateInput"
+    },
+    "ToolResult[BuyStateAnalysis]": {
+      "$ref": "#/$defs/ToolResult_BuyStateAnalysis_"
+    },
+    "BuySimulationInput": {
+      "$ref": "#/$defs/BuySimulationInput"
+    },
+    "ToolResult[BuyPlanComparison]": {
+      "$ref": "#/$defs/ToolResult_BuyPlanComparison_"
+    },
+    "GameRulesInput": {
+      "$ref": "#/$defs/GameRulesInput"
+    },
+    "ToolResult[GameRules]": {
+      "$ref": "#/$defs/ToolResult_GameRules_"
+    },
+    "TacticsInput": {
+      "$ref": "#/$defs/TacticsInput"
+    },
+    "ToolResult[TacticQueryResult]": {
+      "$ref": "#/$defs/ToolResult_TacticQueryResult_"
+    },
+    "PositionsInput": {
+      "$ref": "#/$defs/PositionsInput"
+    },
+    "ToolResult[PositionAnalysis]": {
+      "$ref": "#/$defs/ToolResult_PositionAnalysis_"
+    }
+  },
+  "x-tools": {
+    "validate_round_data": {
+      "input": {
+        "$ref": "#/$defs/ValidateRoundInput"
+      },
+      "output": {
+        "$ref": "#/$defs/ToolResult_ValidationResult_"
+      }
+    },
+    "analyze_buy_state": {
+      "input": {
+        "$ref": "#/$defs/BuyStateInput"
+      },
+      "output": {
+        "$ref": "#/$defs/ToolResult_BuyStateAnalysis_"
+      }
+    },
+    "simulate_buy_options": {
+      "input": {
+        "$ref": "#/$defs/BuySimulationInput"
+      },
+      "output": {
+        "$ref": "#/$defs/ToolResult_BuyPlanComparison_"
+      }
+    },
+    "get_game_rules": {
+      "input": {
+        "$ref": "#/$defs/GameRulesInput"
+      },
+      "output": {
+        "$ref": "#/$defs/ToolResult_GameRules_"
+      }
+    },
+    "lookup_tactics": {
+      "input": {
+        "$ref": "#/$defs/TacticsInput"
+      },
+      "output": {
+        "$ref": "#/$defs/ToolResult_TacticQueryResult_"
+      }
+    },
+    "analyze_positions": {
+      "input": {
+        "$ref": "#/$defs/PositionsInput"
+      },
+      "output": {
+        "$ref": "#/$defs/ToolResult_PositionAnalysis_"
+      }
+    }
+  }
+}

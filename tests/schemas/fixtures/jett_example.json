@@ -1,0 +1,42 @@
+{
+  "match_id": "fixture-match",
+  "round_id": "example-round",
+  "round_index": 1,
+  "map_id": "sunset",
+  "map_revision": null,
+  "ally_players": [
+    {
+      "slot": 1,
+      "team": "ally",
+      "agent": "Jett",
+      "weapon": "Vandal",
+      "credits_unclassified": 4199,
+      "armor": "light",
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "user_confirmed",
+          "source": "user_input"
+        },
+        {
+          "field_name": "weapon",
+          "status": "user_confirmed",
+          "source": "user_input"
+        },
+        {
+          "field_name": "credits_unclassified",
+          "status": "user_confirmed",
+          "source": "user_input"
+        },
+        {
+          "field_name": "armor",
+          "status": "user_confirmed",
+          "source": "user_input"
+        }
+      ]
+    }
+  ],
+  "user_notes": [
+    "测试编号仅定位样例。以 Jett 为己方观察视角；slot 1 是本地记录键。用户未注明金币时点。"
+  ]
+}

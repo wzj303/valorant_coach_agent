@@ -1,0 +1,67 @@
+{
+  "snapshot_id": "fixture-frame",
+  "round_id": "example-round",
+  "map_id": "sunset",
+  "map_revision": "fixture-r1",
+  "timestamp_ms": 2000,
+  "coordinate_system": "normalized",
+  "players": [
+    {
+      "slot": 1,
+      "team": "ally",
+      "x": 0.2,
+      "y": 0.4,
+      "region": "A Site",
+      "status": "observed",
+      "confidence": 0.8
+    },
+    {
+      "slot": 2,
+      "team": "ally",
+      "region": "Mid",
+      "status": "observed"
+    },
+    {
+      "slot": 1,
+      "team": "enemy",
+      "status": "unknown"
+    }
+  ],
+  "evidence": [
+    {
+      "field_name": "map_revision",
+      "status": "observed",
+      "source": "screenshot"
+    },
+    {
+      "field_name": "timestamp_ms",
+      "status": "observed",
+      "source": "screenshot"
+    },
+    {
+      "field_name": "coordinate_system",
+      "status": "observed",
+      "source": "screenshot"
+    },
+    {
+      "field_name": "players.ally.1.x",
+      "status": "observed",
+      "source": "screenshot"
+    },
+    {
+      "field_name": "players.ally.1.y",
+      "status": "observed",
+      "source": "screenshot"
+    },
+    {
+      "field_name": "players.ally.1.region",
+      "status": "observed",
+      "source": "screenshot"
+    },
+    {
+      "field_name": "players.ally.2.region",
+      "status": "observed",
+      "source": "screenshot"
+    }
+  ]
+}

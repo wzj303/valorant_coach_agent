@@ -1,0 +1,18 @@
+{
+  "match_id": "fixture-match",
+  "round_id": "example-round",
+  "round_index": 1,
+  "map_id": "sunset",
+  "map_revision": "fixture-old",
+  "ally_players": [
+    {
+      "slot": 1,
+      "team": "ally",
+      "credits_before_buy": -1
+    },
+    {
+      "slot": 1,
+      "team": "ally"
+    }
+  ]
+}

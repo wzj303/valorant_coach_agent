@@ -1,0 +1,50 @@
+{
+  "match_id": "fixture-match",
+  "round_id": "example-round",
+  "round_index": 1,
+  "map_id": "sunset",
+  "map_revision": null,
+  "ally_players": [
+    {
+      "slot": 1,
+      "team": "ally",
+      "agent": "Sage",
+      "abilities": {
+        "Slow Orb": null,
+        "Barrier Orb": false
+      },
+      "evidence": [
+        {
+          "field_name": "agent",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "abilities.Barrier Orb",
+          "status": "observed",
+          "source": "screenshot"
+        }
+      ]
+    }
+  ],
+  "enemy_players": [
+    {
+      "slot": 3,
+      "team": "enemy",
+      "weapon": "Vandal",
+      "credits_before_buy": 3000,
+      "evidence": [
+        {
+          "field_name": "weapon",
+          "status": "observed",
+          "source": "screenshot"
+        },
+        {
+          "field_name": "credits_before_buy",
+          "status": "inferred",
+          "source": "model_inference"
+        }
+      ]
+    }
+  ]
+}
