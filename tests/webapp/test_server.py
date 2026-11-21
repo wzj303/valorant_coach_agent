@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 import webapp.server as webapp_server
-from webapp.server import start_server
+from webapp.server import start_server, with_snapshot_text
 
 from tests.agent.helpers import make_png
 
@@ -259,6 +259,12 @@ def test_analyze_ephemeral_config_requires_key_and_model(base_url):
                             "config": {"format": "openai", "model": "", "api_key": ""}})
     assert status == 400
     assert "api_key" in body["error"]
+
+
+def test_with_snapshot_text_appends_structured_data():
+    text = with_snapshot_text("帮我复盘", {"match_id": "m1", "round_id": "r1"})
+    assert text.startswith("帮我复盘")
+    assert "match_id" in text and '"r1"' in text
 
 
 def test_analyze_ephemeral_config_routes_to_the_provider(monkeypatch, tmp_path):

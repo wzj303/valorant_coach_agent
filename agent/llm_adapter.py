@@ -141,7 +141,13 @@ def _translate_sdk_error(exc: Exception) -> Exception:
         return LlmTimeoutError(f"LLM request timed out: {exc}")
     if "APIStatusError" in names:
         status = getattr(exc, "status_code", None)
-        return LlmProviderError(f"LLM provider returned HTTP {status}: {_short(exc)}", status_code=status)
+        request = getattr(exc, "request", None)
+        url = getattr(request, "url", None) if request is not None else None
+        message = f"LLM provider returned HTTP {status}"
+        if url:
+            message += f" for {url}"
+        message += f": {_short(exc)}"
+        return LlmProviderError(message, status_code=status)
     if "APIConnectionError" in names:
         return LlmProviderError(f"cannot reach LLM provider: {_short(exc)}")
     return exc

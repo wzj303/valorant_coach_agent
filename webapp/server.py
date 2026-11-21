@@ -151,6 +151,13 @@ def _config_from_fields(fields: dict, *, existing: dict[str, str] | None = None)
         raise LlmConfigError(f"invalid model config: {exc}") from exc
 
 
+def with_snapshot_text(text: str, snapshot: dict) -> str:
+    """Append a pasted snapshot to the request text so a real model can use it."""
+    note = ("\n\n用户提供了已确认的结构化快照 JSON（可原样用作 validate_round_data 等工具的"
+            "参数，不需要重新识别）：\n")
+    return (text + note + json.dumps(snapshot, ensure_ascii=False)).strip()
+
+
 def server_mode() -> str:
     return "real" if available_config() else "demo"
 
@@ -353,6 +360,11 @@ class Handler(BaseHTTPRequestHandler):
             mode = "real" if config is not None else "demo"
         try:
             if mode == "real":
+                if payload.get("snapshot"):
+                    request = AgentRequest(text=with_snapshot_text(request.text, payload["snapshot"]),
+                                           images=request.images, task_type=request.task_type,
+                                           user_observations=request.user_observations,
+                                           task_id=request.task_id)
                 llm = RealLlmAdapter(config)
             else:
                 llm = DemoLlm(request.task_id, request.task_type,
