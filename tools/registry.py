@@ -2,7 +2,7 @@
 
 `build_registry()` registers the six V0 tools using the shared contracts in `schemas`:
   * validate_round_data lives in tools/validate_round_data.py (GPT-2).
-  * the five domain tools are imported from tools/domain/<name>.py (GPT-3).
+  * tools/domain/contracts.py adapts the five tactical tools to the shared contracts.
 
 Convention for a domain tool module (see README "Integration with GPT-3"):
 
@@ -86,7 +86,15 @@ def load_domain_handler(name: str) -> Callable[..., Any] | None:
     try:
         module = importlib.import_module(module_name)
     except ModuleNotFoundError as exc:
-        if exc.name in (module_name, "tools.domain", "tools"):
+        if exc.name == module_name:
+            try:
+                adapters = importlib.import_module("tools.domain.contracts")
+            except ModuleNotFoundError as missing:
+                if missing.name == "tools.domain.contracts":
+                    return None
+                raise
+            return adapters.HANDLERS.get(name)
+        if exc.name in ("tools.domain", "tools"):
             return None
         raise  # the module exists but one of its own imports is broken: do not hide that
     handler = getattr(module, name, None)

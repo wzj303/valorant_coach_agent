@@ -13,13 +13,11 @@ import logging
 import sys
 from pathlib import Path
 
-from schemas import CoachResponse
-
 from .agent_loop import AgentLoop, AgentRequest
+from .demo import DemoLlm
 from .diagnostics import check_capabilities
-from .exceptions import AgentError
-from .llm_adapter import ILlmAdapter, LlmConfig, RealLlmAdapter
-from .mock_llm import MockLlmAdapter, final_response, tool_call_response
+from .exceptions import AgentError, AgentRequestError
+from .llm_adapter import LlmConfig, RealLlmAdapter
 from .report import render_markdown
 from .skill_loader import SkillLoader
 
@@ -46,39 +44,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--map-revision", help="trusted map revision from your map data (used by validate_round_data)")
     p.add_argument("--max-iterations", type=int, default=12)
     p.add_argument("--demo", action="store_true", help="run offline with a scripted mock model")
+    p.add_argument("--snapshot", type=Path, help="use a RoundSnapshot or PositionSnapshot JSON file in the offline demo")
     p.add_argument("--check-llm", action="store_true", help="probe the configured model and exit")
     p.add_argument("-v", "--verbose", action="store_true")
     return p
 
 
-def demo_llm(task_id: str) -> MockLlmAdapter:
-    """Scripted stand-in model so the whole pipeline can be seen without an API key."""
-    snapshot = {"match_id": "demo", "round_id": "demo-r1", "round_index": 1, "map_id": "sunset",
-                "map_revision": None,
-                "ally_players": [{"slot": 1, "team": "ally", "agent": "Jett", "weapon": "Vandal",
-                                  "credits_unclassified": 4199, "armor": "light",
-                                  "evidence": [{"field_name": "agent", "status": "user_confirmed", "source": "user_input"},
-                                               {"field_name": "weapon", "status": "user_confirmed", "source": "user_input"}]}]}
-    report = CoachResponse.model_validate({
-        "task_id": task_id, "task_status": "partial",
-        "overall_judgement": "只确认了 Jett 一个人的装备，无法评价整队购买。",
-        "buy_review": "Jett 持 Vandal 并穿轻甲。4199 金币的时点未确认，不能判断这是购买前还是购买后。",
-        "findings": [{"title": "金币时点不明", "severity": "medium",
-                      "explanation": "4199 只记为 credits_unclassified，没有用于买枪预算。",
-                      "evidence_refs": ["credits_unclassified"], "confidence": 0.9}],
-        "evidence": [{"field_name": "credits_unclassified", "status": "user_confirmed", "source": "user_input"}],
-        "recommendations": [{"priority": 1, "action": "确认 4199 金币是购买前还是购买后的余额",
-                             "reason": "购买预算只能基于购买前金币计算", "expected_benefit": "可以进行购买方案模拟"}],
-        "missing_information": ["队友和敌方的装备与金币", "游戏版本 game_patch"],
-        "coach_summary": "先确认金币时点，再补全队友信息，之后才能判断这次购买是否合理。（演示数据）"})
-    return MockLlmAdapter([tool_call_response(("validate_round_data", {"round_snapshot": snapshot})),
-                           final_response(report)])
-
-
-def make_llm(args: argparse.Namespace, task_id: str) -> ILlmAdapter:
-    if args.demo:
-        return demo_llm(task_id)
-    return RealLlmAdapter(LlmConfig.from_env())
 
 
 async def run_cli(args: argparse.Namespace) -> int:
@@ -94,11 +65,30 @@ async def run_cli(args: argparse.Namespace) -> int:
             print(f"[{'PASS' if pr.passed else 'FAIL'}] {pr.name}: {pr.detail}")
         return 0 if all(pr.passed for pr in probes) else 1
 
-    request = AgentRequest(text=args.text, images=list(args.image), task_type=args.task,
+    skills = SkillLoader()
+    task = args.task
+    snapshots = None
+    if args.snapshot:
+        if not args.demo:
+            raise AgentRequestError("--snapshot requires --demo")
+        try:
+            snapshot = json.loads(args.snapshot.read_text(encoding="utf-8-sig"))
+        except (OSError, ValueError) as exc:
+            raise AgentRequestError(f"cannot read snapshot: {exc}") from exc
+        if not isinstance(snapshot, dict):
+            raise AgentRequestError("--snapshot expects a JSON object")
+        if task is None:
+            task = "position_review" if "snapshot_id" in snapshot else "buy_review"
+        snapshots = [snapshot]
+    if args.demo and not task:
+        selected = skills.select(None, args.text)
+        task = next(iter(selected.task_types)) if selected else "buy_review"
+    text = args.text or ("运行离线样例" if args.demo else "")
+    request = AgentRequest(text=text, images=list(args.image), task_type=task,
                            user_observations=list(args.observation))
-    registry = build_registry(expected_map_revision=args.map_revision)
-    skills = SkillLoader()  # tools may be absent at this stage: skills degrade, see prompts.UNAVAILABLE_TOOLS_NOTE
-    llm = make_llm(args, request.task_id)
+    registry = build_registry(expected_map_revision=args.map_revision, strict=True)
+    skills.validate_tools(registry.names())
+    llm = DemoLlm(request.task_id, task, snapshots) if args.demo else RealLlmAdapter(LlmConfig.from_env())
     try:
         loop = AgentLoop(llm, registry, skills, max_iterations=args.max_iterations)
         result = await loop.run_with_trace(request)

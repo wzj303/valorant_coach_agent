@@ -1,5 +1,5 @@
 # Runtime
-pydantic>=2.5
+pydantic>=2.11,<3
 openai>=1.40          # OpenAI-compatible chat/completions (vision + tools)
 anthropic>=0.40       # Anthropic Messages API (vision + tools)
 pyyaml>=6.0           # SKILL.md frontmatter

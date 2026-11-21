@@ -184,11 +184,13 @@ def test_specs_are_clean_json_schemas():
     assert specs["analyze_buy_state"].parameters["properties"]["round_snapshot"]
 
 
-def test_registry_without_domain_tools_registers_only_validate():
+def test_registry_without_domain_tools_registers_only_validate(monkeypatch):
+    monkeypatch.setattr("tools.registry.load_domain_handler", lambda name: None)
     assert build_registry().names() == ["validate_round_data"]
 
 
-def test_strict_registry_fails_loudly_when_tools_are_missing():
+def test_strict_registry_fails_loudly_when_tools_are_missing(monkeypatch):
+    monkeypatch.setattr("tools.registry.load_domain_handler", lambda name: None)
     with pytest.raises(RuntimeError, match="analyze_buy_state"):
         build_registry(strict=True)
 
@@ -200,7 +202,7 @@ def test_unknown_handler_override_is_an_error():
 
 async def test_gpt3_style_module_is_picked_up(tmp_path, monkeypatch):
     """A tools/domain/<name>.py exposing <name>(request) is registered without changes here."""
-    import tools
+    import tools.domain
     pkg = tmp_path / "domain"
     pkg.mkdir()
     (pkg / "__init__.py").write_text("")
@@ -208,10 +210,11 @@ async def test_gpt3_style_module_is_picked_up(tmp_path, monkeypatch):
         "def get_game_rules(request):\n"
         "    return {'tool_name': 'get_game_rules', 'status': 'failed', 'data': None,\n"
         "            'warnings': [], 'errors': ['no provider'], 'evidence': []}\n")
-    monkeypatch.setattr(tools, "__path__", list(tools.__path__) + [str(tmp_path)])
+    monkeypatch.setattr(tools.domain, "__path__", [str(pkg), *tools.domain.__path__])
     import sys
-    for m in [m for m in sys.modules if m.startswith("tools.domain")]:
-        monkeypatch.delitem(sys.modules, m)
+    # Ensure monkeypatch also removes the temporarily imported module on teardown.
+    monkeypatch.setitem(sys.modules, "tools.domain.get_game_rules", None)
+    del sys.modules["tools.domain.get_game_rules"]
     r = build_registry()
     assert "get_game_rules" in r.names()
     ex = await r.execute(call("get_game_rules", {"game_patch": "p", "rule_categories": ["economy"]}))

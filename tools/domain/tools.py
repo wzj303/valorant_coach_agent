@@ -32,6 +32,8 @@ def _dataset_metadata(dataset, source):
         "schema_version": dataset.get("schema_version", "unknown"),
         "patch": dataset.get("patch"),
         "source_status": dataset.get("source_status", "unknown"),
+        "map_revision": dataset.get("map_revision"),
+        "verified_at": (dataset.get("provenance") or {}).get("verified_at"),
     }
 
 

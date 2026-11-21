@@ -72,7 +72,7 @@ report = await loop.run(AgentRequest(text="...", images=["shot.png"], task_type=
 
 ## 与 GPT-3 的集成
 
-约定：`tools/domain/<工具名>.py` 里有同名函数，例如 `tools/domain/analyze_buy_state.py` 的 `analyze_buy_state`。`build_registry()` 会自动导入并注册，不需要改本模块。函数可以是同步或异步，返回 `ToolResult`（模型或 dict），两种签名都支持：
+五个业务工具均通过 `tools/domain/contracts.py` 接入。可通过 `tools/domain/<工具名>.py` 的同名函数覆盖默认适配器。注册表支持以下两种签名。
 
 ```python
 def analyze_buy_state(request: BuyStateInput) -> ToolResult[BuyStateAnalysis]: ...
@@ -85,8 +85,8 @@ def analyze_buy_state(round_snapshot: RoundSnapshot) -> ...:    # 按字段名�
 
 ## 未完成与已知限制
 
-- **真实模型未联调**：没有可用的视觉模型密钥，`RealLlmAdapter` 只用假 SDK 客户端测过报文格式和错误映射。拿到密钥后先跑 `--check-llm`，再跑一张真实截图。
-- **GPT-3 的五个工具尚未合入**：目前端到端测试里用符合契约的替身工具，真实计算结果还没经过 Agent 验证。
+- **在线模型待验证**：OpenAI 兼容 SDK 已通过本机回环服务验证图片传输、两轮工具调用和报告返回。实际模型的截图识别能力需要配置服务后使用 `--check-llm` 和真实截图检验。
+- 离线端到端测试使用真实战术工具；价格、地图修订或局内观察不足时会产生部分结果。
 - **截图读取质量取决于模型**：本模块不做 OCR，Skill 只约束填写规则。读错的字段靠 `validate_round_data` 的一致性检查和用户确认纠正。
 - 没有流式输出、没有跨请求的会话记忆。`coach-feedback` 依赖调用方把已有分析放进 `AgentRequest.context`。
 - Windows 上若系统临时目录无写权限，pytest 的 `tmp_path` 会失败，`pyproject.toml` 已把 `--basetemp` 指到仓库内的 `.pytest_tmp`。

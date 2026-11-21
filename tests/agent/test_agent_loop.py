@@ -185,9 +185,10 @@ async def test_iteration_cap_forces_a_final_answer(make_loop, png_bytes):
     assert llm.requests[-1].tools == [] and any("max_iterations" in n for n in result.trace.notes)
 
 
-async def test_missing_tool_is_announced_to_the_model(skills, png_bytes):
+async def test_missing_tool_is_announced_to_the_model(skills, png_bytes, monkeypatch):
     from agent import AgentLoop
     from tools.registry import build_registry
+    monkeypatch.setattr("tools.registry.load_domain_handler", lambda name: None)
     llm = MockLlmAdapter([final_response(report(TID))])
     loop = AgentLoop(llm, build_registry(), skills)   # no domain tools registered at all
     await loop.run(buy_request(png_bytes))
