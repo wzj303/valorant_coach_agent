@@ -1,6 +1,8 @@
 # 本地知识数据
 
-这些数据用于 VALORANT 教练原型的加载、未知状态处理和字段契约开发。所有数据记录均标记为 `source_status = "unverified"`，游戏版本 `patch` 为 `null`。
+教练通过 `get_coaching_advice` 从[端游整场复盘指南](valorant-pc-match-review.zh-CN.json)检索机制、战术规则、地图笔记和标为 synthetic 的演算案例。结果保留来源文件与 JSON Pointer，可以回查原文的条件和例外。
+
+以下结构化经济与地图数据用于战术计算，其占位记录标记为 `source_status = "unverified"`，游戏版本 `patch` 为 `null`。
 
 ## 数据文件
 

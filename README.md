@@ -2,7 +2,9 @@
 
 瓦洛兰特战术复盘教练。
 
-多模态单 Agent：看截图、调用 Python 工具、输出结构化教练报告。地图 V0 仅 Sunset。
+多模态教练 Agent 可以读取截图、调用 Python 工具并输出结构化复盘。站位计算支持 Sunset，专业建议查询覆盖复盘指南收录的地图。
+
+整场连续复盘使用 **LangGraph + SQLite** 编排，支持 13 局以上的开局截图、分批补传、逐回合上下文和中断恢复；单回合入口继续使用轻量 AgentLoop。
 
 | 模块 | 负责 | 说明 |
 |---|---|---|
@@ -41,7 +43,11 @@ python -m venv .venv
 .venv\Scripts\python -m agent --task buy_review --image "round.png" --text "复盘这回合的购买" --trace
 ```
 
-当前知识库的价格和地图修订尚待核验。工具仍能统计已观察的金币、装备和区域人数；依赖缺失价格或地图拓扑的判断会标记为 `partial` 并给出原因。
+截图计算所用的价格表和地图修订尚待核验。工具会统计已观察的金币、装备和区域人数，依赖缺失数值的判断会标记为 `partial`。
+
+### 查询专业复盘建议
+
+三个复盘 Skill 共用 `get_coaching_advice`。知识库随项目分发，查询可离线运行。例如，调用 `{"query":"补枪是否可行","section":"rules","limit":1}` 会返回 T01 的适用场景、评估方法和例外。也可按条目编号查询经济机制（`M02`），或按地图名查询地图笔记（`{"query":"Haven","section":"map_notes"}`）。每个结果保留原文和 JSON Pointer，另附知识库版本、参考补丁、适用模式。见[中文复盘知识库](knowledge/valorant-pc-match-review.zh-CN.json)。
 
 ## 本地 Web 前端
 
@@ -75,6 +81,39 @@ python -m webapp --host 127.0.0.1   # 仅本机
 
 接口：`GET /api/health`、`GET /api/config`、`POST /api/config`、`POST /api/config/test`、`GET /api/samples`、`POST /api/analyze`。请求体上限 64 MB，单张图片 ≤ 20 MB、最多 10 张，模型输出全部按纯文本渲染，不会执行任何上传内容。
 
+### 整场连续复盘（13 局及以上）
+
+先安装更新后的 `requirements.txt`，然后照常运行 `python -m webapp`。页面选择「整场复盘」：
+
+1. 配置支持图片输入的模型。整场截图流程没有配置模型时会明确报错；离线模式仅分析用户提供的结构化快照，不会假装读取截图。
+2. 选择整场开局截图，默认按文件名自然排序（`round-2` 在 `round-10` 前）。每张对应一回合，支持最多 100 回合及加时；可用预览箭头调整顺序，填写这批截图的起始回合。所有截图保持同一己方视角，换边后也不要交换 ally/enemy。
+3. 点击「开始分析」。浏览器逐回合上传，每次请求一张图片，避免整场图片超过请求体限制；页面显示已保存回合和当前步骤，最后生成整场总结。
+4. 保留页面中的比赛编号。后续打开同一服务器，输入该编号并点「读取比赛进度」，即可补传后面的回合。只有编号保存在浏览器，模型密钥不写入浏览器存储或比赛检查点。
+5. 网络或模型请求失败后，点「继续中断的分析」，从最后一个已保存的图节点继续。恢复当前服务端批次后，若浏览器中还有尚未发送的图片，再点「开始分析」；相同回合和相同输入会被去重。
+6. 更正已上传回合时，勾选「更正已上传回合」并填写相应回合编号。工作流会重新分析更正回合及其后续回合，避免旧结论继续引用错误上下文。补上中间缺失的回合也会刷新后续分析。
+
+逐回合数据、报告和图检查点保存在服务器 `.state/matches.sqlite`，图片保存在 `.state/match-images/`，均已排除 Git。重启服务后保留 `.state/` 即可继续读取；这是单进程本地/局域网服务，不需要 LangSmith、外部数据库或 LangGraph 云服务。
+
+编排图、输入格式、API 和限制见 [整场工作流说明](docs/match-workflow.md)。
+
+命令行同样支持连续复盘：
+
+```powershell
+# 按文件名自然排序，逐回合读取，生成整场总结
+python -m agent --task match_review --image-dir ./screenshots --match-id team-game-001 --trace
+
+# 为同一场比赛补传第 14 回合起的截图
+python -m agent --task match_review --image-dir ./more-screenshots --start-round 14 --match-id team-game-001
+
+# 恢复当前中断的服务端批次（不再传图片）
+python -m agent --match-id team-game-001 --resume
+
+# 已有 RoundSnapshot 数组时，可不联网运行完整图和真实战术工具
+python -m agent --demo --rounds ./rounds.json --match-id offline-game --json
+```
+
+分析会区分回合缺口和换边，只在相邻开局比分足够明确时确认上一回合胜负；开局余额差不会被解释为收入或花费。仅有开局截图无法还原完整对枪、移动和最后一局结果，报告会标明范围。知识库仍未核验的规则和地图数据继续返回 `partial`。
+
 跨网络访问（队友不在同一局域网）需要内网穿透或路由器端口转发，例如 frp / ngrok 等工具，把外网端口映射到本机的 8765。
 
 ## GPT-3 Tactical Engine
@@ -97,4 +136,4 @@ python -m unittest discover -s tests/tactical_engine -v
 
 开发依赖列在 [requirements-dev.txt](requirements-dev.txt)。完整项目测试和 pytest 配置见 [pyproject.toml](pyproject.toml)。
 
-本地规则与 Sunset 数据位于 [knowledge](knowledge/)。当前数据标记为 `unverified`，价格、奖励、坐标、拓扑关系和战术内容仍待核实。未知值会保留为未知，避免被当作零或确定事实。
+战术引擎的结构化规则与 Sunset 地图位于 [knowledge](knowledge/)。其中标为 `unverified` 的价格、奖励和拓扑仍待核实。专业建议查询单独读取中文复盘指南，保留该资料声明的版本。

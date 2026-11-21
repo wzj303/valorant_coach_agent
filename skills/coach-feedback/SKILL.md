@@ -3,7 +3,7 @@ name: coach-feedback
 description: 汇总整场比赛的教练反馈。输入是多个回合的快照、单回合分析结果和用户补充信息，输出主要优点、反复出现的问题和最重要的三个改进方向。用户问"整场打得怎么样""帮我做赛后总结""下场该练什么"时使用。
 task_types: [match_review]
 triggers: [整场, 赛后, 总结, 总体, 复盘整场, 训练建议, 改进, match review, summary, overall]
-allowed_tools: [validate_round_data, analyze_buy_state, simulate_buy_options, get_game_rules, lookup_tactics, analyze_positions]
+allowed_tools: [validate_round_data, analyze_buy_state, simulate_buy_options, get_game_rules, lookup_tactics, analyze_positions, get_coaching_advice]
 ---
 
 # 整场比赛教练反馈
@@ -25,7 +25,7 @@ allowed_tools: [validate_round_data, analyze_buy_state, simulate_buy_options, ge
    - 站位 → `analyze_positions`
    - 补调用前先用 `validate_round_data` 校验快照。
 4. 找**重复出现**的模式，而不是罗列每个回合。
-5. 写出优点、问题和三个改进方向。
+5. 写训练建议前调用 `get_coaching_advice` 查询有回合证据的问题，例如“识别重复习惯与临场调整”。对照条目的条件和例外，在建议理由中写出条目编号及对应回合。整场工作流已提供查询结果时直接使用。
 
 ## 判断规则
 

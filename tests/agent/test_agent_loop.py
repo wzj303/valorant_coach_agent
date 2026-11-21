@@ -110,7 +110,7 @@ async def test_skill_is_selected_from_task_type_and_injected(make_loop, png_byte
     system = llm.requests[0].messages[0].text
     assert "position-coordination-review" in system and "区域里的人数" in system
     names = {t.name for t in llm.requests[0].tools}
-    assert names == {"validate_round_data", "analyze_positions", "lookup_tactics"}
+    assert names == {"validate_round_data", "analyze_positions", "lookup_tactics", "get_coaching_advice"}
 
 
 async def test_skill_is_selected_from_text_when_no_task_type(make_loop, png_bytes):

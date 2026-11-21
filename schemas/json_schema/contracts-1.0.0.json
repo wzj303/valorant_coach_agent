@@ -1,5 +1,47 @@
 {
   "$defs": {
+    "AdviceEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "section": {
+          "enum": [
+            "rules",
+            "mechanics",
+            "map_notes",
+            "examples",
+            "economy_calculation",
+            "glossary",
+            "round_record",
+            "match_metrics",
+            "reporting",
+            "agent_instructions"
+          ],
+          "title": "Section",
+          "type": "string"
+        },
+        "reference": {
+          "minLength": 1,
+          "title": "Reference",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "content": {
+          "$ref": "#/$defs/JsonValue"
+        }
+      },
+      "required": [
+        "section",
+        "reference",
+        "title",
+        "content"
+      ],
+      "title": "AdviceEntry",
+      "type": "object"
+    },
     "AnalysisContext": {
       "additionalProperties": false,
       "properties": {
@@ -506,6 +548,95 @@
       "title": "CoachResponse",
       "type": "object"
     },
+    "CoachingAdvice": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "reference_patch": {
+          "minLength": 1,
+          "title": "Reference Patch",
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "title": "Scope",
+          "type": "string"
+        },
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/AdviceEntry"
+          },
+          "title": "Entries",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source",
+        "version",
+        "reference_patch",
+        "scope",
+        "entries"
+      ],
+      "title": "CoachingAdvice",
+      "type": "object"
+    },
+    "CoachingAdviceInput": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "description": "中文场景关键词、中英文地图名或原文条目编号，如 T01",
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "section": {
+          "anyOf": [
+            {
+              "enum": [
+                "rules",
+                "mechanics",
+                "map_notes",
+                "examples",
+                "economy_calculation",
+                "glossary",
+                "round_record",
+                "match_metrics",
+                "reporting",
+                "agent_instructions"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section"
+        },
+        "limit": {
+          "default": 3,
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "CoachingAdviceInput",
+      "type": "object"
+    },
     "DataQuality": {
       "additionalProperties": false,
       "properties": {
@@ -902,6 +1033,7 @@
       "title": "GameRulesInput",
       "type": "object"
     },
+    "JsonValue": {},
     "MatchReport": {
       "additionalProperties": false,
       "properties": {
@@ -2267,6 +2399,65 @@
       "title": "ToolResult[BuyStateAnalysis]",
       "type": "object"
     },
+    "ToolResult_CoachingAdvice_": {
+      "additionalProperties": false,
+      "properties": {
+        "tool_name": {
+          "minLength": 1,
+          "title": "Tool Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "success",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CoachingAdvice"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "errors": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/FieldEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tool_name",
+        "status",
+        "data"
+      ],
+      "title": "ToolResult[CoachingAdvice]",
+      "type": "object"
+    },
     "ToolResult_GameRules_": {
       "additionalProperties": false,
       "properties": {
@@ -2674,6 +2865,12 @@
     "ToolResult[TacticQueryResult]": {
       "$ref": "#/$defs/ToolResult_TacticQueryResult_"
     },
+    "CoachingAdviceInput": {
+      "$ref": "#/$defs/CoachingAdviceInput"
+    },
+    "ToolResult[CoachingAdvice]": {
+      "$ref": "#/$defs/ToolResult_CoachingAdvice_"
+    },
     "PositionsInput": {
       "$ref": "#/$defs/PositionsInput"
     },
@@ -2720,6 +2917,14 @@
       },
       "output": {
         "$ref": "#/$defs/ToolResult_TacticQueryResult_"
+      }
+    },
+    "get_coaching_advice": {
+      "input": {
+        "$ref": "#/$defs/CoachingAdviceInput"
+      },
+      "output": {
+        "$ref": "#/$defs/ToolResult_CoachingAdvice_"
       }
     },
     "analyze_positions": {

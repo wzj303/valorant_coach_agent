@@ -3,7 +3,7 @@ name: position-coordination-review
 description: 复盘基础局内站位和团队配合。输入是小地图截图，输出人员分布、孤立站位、潜在支援关系和阵容适配度的评价。用户问"站位有没有问题""大家是不是太散""配合怎么样"时使用。
 task_types: [position_review]
 triggers: [站位, 小地图, 配合, 支援, 孤立, 分散, 控图, 区域, position, minimap, rotate, spacing]
-allowed_tools: [validate_round_data, analyze_positions, lookup_tactics]
+allowed_tools: [validate_round_data, analyze_positions, lookup_tactics, get_coaching_advice]
 ---
 
 # 站位与团队配合复盘
@@ -26,7 +26,7 @@ allowed_tools: [validate_round_data, analyze_positions, lookup_tactics]
    - `partial`：继续，带上 `warnings`。
 4. **调用 `analyze_positions`**，参数使用 `normalized_position_snapshot`（只传了站位时是 `normalized_snapshot`）。多个时间点按 `timestamp_ms` 放进 `position_snapshots`。
 5. **必要时调用 `lookup_tactics`**，查 Sunset 对应区域、英雄职责、默认站位的知识，注意 `side` 和 `map_revision` 要与快照一致。
-6. 把工具结果、英雄职责和地图结构放在一起写复盘。
+6. 给站位建议前调用 `get_coaching_advice` 查询具体问题，例如“补枪是否可行”或“转防信息”。报告中引用条目编号，并指出画面中能核实哪些适用条件。查地图笔记时使用地图中英文名和 `section=map_notes`。
 
 ## 填写规则（PositionSnapshot）
 

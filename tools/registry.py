@@ -1,8 +1,9 @@
 """Tool wiring for the agent. Owned by GPT-1.
 
-`build_registry()` registers the six V0 tools using the shared contracts in `schemas`:
+`build_registry()` registers the coach tools using the shared contracts in `schemas`:
   * validate_round_data lives in tools/validate_round_data.py (GPT-2).
   * tools/domain/contracts.py adapts the five tactical tools to the shared contracts.
+  * get_coaching_advice retrieves passages from the bundled PC match review guide.
 
 Convention for a domain tool module (see README "Integration with GPT-3"):
 
@@ -28,9 +29,13 @@ from agent.utils import decode_json_string
 log = logging.getLogger("agent.tools")
 
 DOMAIN_TOOLS = ("analyze_buy_state", "simulate_buy_options", "get_game_rules",
-                "lookup_tactics", "analyze_positions")
+                "lookup_tactics", "analyze_positions", "get_coaching_advice")
 
 DESCRIPTIONS = {
+    "get_coaching_advice": (
+        "从中文端游复盘知识库按关键词、中英文地图名或条目编号获取专业建议。"
+        "返回原文、适用条件、例外、版本和来源位置。可按 rules、mechanics、map_notes 等章节筛选。"
+        "示例仅用于对照，引用建议时结合本场可观察证据。"),
     "validate_round_data": (
         "检查并标准化你提取的 RoundSnapshot / PositionSnapshot。其他工具必须使用它返回的 "
         "data.normalized_snapshot。不会猜测缺失值，只报告缺失、疑点和错误。"),

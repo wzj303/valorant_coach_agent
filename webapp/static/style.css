@@ -78,7 +78,7 @@ main {
 .field { margin-bottom: 16px; }
 .field > label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
 
-textarea, input[type="text"] {
+textarea, input[type="text"], input[type="number"] {
   width: 100%;
   background: var(--panel-2);
   color: var(--text);
@@ -301,3 +301,12 @@ pre.json {
 
 footer { max-width: 1200px; margin: 0 auto; padding: 0 20px 24px; font-size: 12px; }
 .muted { color: var(--muted); }
+/* Persisted full-match review */
+#match-controls input[type="text"] { width: 100%; }
+#start-round { width: 7rem; }
+.match-round { border-bottom: 1px solid #39414a; padding: 12px 0; }
+.match-round summary { cursor: pointer; font-weight: 600; }
+.match-round p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.preview-order { display: flex; gap: 8px; padding-top: 4px; }
+.preview-order button { flex: 1; padding: 2px 6px; }
+#match-progress { white-space: pre-wrap; overflow-wrap: anywhere; }

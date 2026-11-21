@@ -3,7 +3,7 @@ name: buy-decision-review
 description: 复盘 VALORANT 购买阶段的决策。输入是购买阶段截图（记分板/商店/装备栏），输出双方经济、购买类型、团队协调和替代方案的评价。用户问"这回合该不该起枪""这波购买对不对""经济怎么样"时使用。
 task_types: [buy_review]
 triggers: [购买, 买枪, 起枪, 半起, 全起, eco, 经济, 金币, 护甲, 技能购买, buy, economy, credits]
-allowed_tools: [validate_round_data, get_game_rules, analyze_buy_state, simulate_buy_options, lookup_tactics]
+allowed_tools: [validate_round_data, get_game_rules, analyze_buy_state, simulate_buy_options, lookup_tactics, get_coaching_advice]
 ---
 
 # 购买决策复盘
@@ -22,7 +22,7 @@ allowed_tools: [validate_round_data, get_game_rules, analyze_buy_state, simulate
 5. **调用 `analyze_buy_state`**，拿到双方经济、武器/护甲分布、购买类型、团队协调度。所有经济数字都取自这个结果。
 6. **必要时调用 `simulate_buy_options`**，比较 `full_buy` / `half_buy` / `eco`。只有存在明确的疑点（花钱过多、团队不一致、影响下一回合经济）时才需要。
 7. **必要时调用 `lookup_tactics`**，把购买放进 Sunset 的攻防情境里评价。
-8. 综合以上结果写报告。
+8. 给购买建议前调用 `get_coaching_advice` 查询本回合的决策，例如“输手枪后的第二回合”。将条目的适用条件、例外与已知的个人预算对照，在建议理由中引用条目编号。
 
 ## 填写规则（RoundSnapshot）
 

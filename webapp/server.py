@@ -9,6 +9,9 @@ Serves the static web UI and a small JSON API:
     POST /api/config/test  probe text / vision / tool-calling of a model config
     GET  /api/samples      sample RoundSnapshot / PositionSnapshot fixtures
     POST /api/analyze      run one coach analysis and return the report
+    POST /api/matches/analyze   analyze/append full-match rounds, then optionally summarize
+    GET  /api/matches/{id}      saved rounds and live graph progress
+    POST /api/matches/{id}/resume  continue an interrupted checkpoint
 
 The server uses only the Python standard library, so teammates need nothing
 installed: one person starts `python -m webapp`, everyone on the LAN opens the
@@ -27,6 +30,7 @@ import logging
 import os
 import socket
 import threading
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -37,6 +41,7 @@ from agent.demo import DemoLlm
 from agent.diagnostics import check_capabilities
 from agent.llm_adapter import LlmConfig, RealLlmAdapter
 from agent.report import render_markdown
+from agent.match_service import MatchConflictError, MatchService
 from tools.registry import build_registry
 
 log = logging.getLogger("webapp")
@@ -45,6 +50,8 @@ ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = ROOT / "webapp" / "static"
 FIXTURES_DIR = ROOT / "tests" / "schemas" / "fixtures"
 ENV_FILE = ROOT / ".env"
+MATCH_DB = ROOT / ".state" / "matches.sqlite"
+MATCH_MEDIA = ROOT / ".state" / "match-images"
 
 DEFAULT_PORT = 8765
 MAX_BODY_BYTES = 64 * 1024 * 1024
@@ -235,6 +242,8 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, config_snapshot())
         elif self.path == "/api/samples":
             self._samples()
+        elif self.path.startswith("/api/matches/"):
+            self._match_status(self.path.removeprefix("/api/matches/"))
         elif self.path.startswith("/static/"):
             self._serve_static(self.path[len("/static/"):])
         else:
@@ -276,7 +285,15 @@ class Handler(BaseHTTPRequestHandler):
 
     # ----------------------------------------------------------------- POST
     def do_POST(self) -> None:
-        if self.path == "/api/analyze":
+        if self.path == "/api/matches/analyze":
+            payload = self._read_json_body()
+            if payload is not None:
+                self._analyze_match(payload)
+        elif self.path.startswith("/api/matches/") and self.path.endswith("/resume"):
+            payload = self._read_json_body()
+            if payload is not None:
+                self._analyze_match(payload, resume_id=self.path[len("/api/matches/"):-len("/resume")])
+        elif self.path == "/api/analyze":
             payload = self._read_json_body()
             if payload is not None:
                 self._analyze(payload)
@@ -340,7 +357,65 @@ class Handler(BaseHTTPRequestHandler):
             "all_passed": all(probe.passed for probe in probes),
         })
 
+    def _match_status(self, match_id: str) -> None:
+        try:
+            result = asyncio.run(MatchService(MATCH_DB, MATCH_MEDIA).status(match_id))
+        except AgentRequestError as exc:
+            self._error(400, str(exc))
+            return
+        if result is None:
+            self._error(404, "match not found")
+        else:
+            self._json(200, result)
+
+    def _analyze_match(self, payload: dict, *, resume_id: str | None = None) -> None:
+        match_id = resume_id or payload.get("match_id") or f"match-{uuid.uuid4().hex[:16]}"
+        llm = None
+        try:
+            config_fields = payload.get("config")
+            if config_fields is not None and not isinstance(config_fields, dict):
+                raise AgentRequestError("config must be an object")
+            config = (_config_from_fields(config_fields) if config_fields is not None else
+                      None if payload.get("force_demo") else available_config())
+            llm = RealLlmAdapter(config) if config is not None else None
+
+            async def run() -> dict:
+                try:
+                    return await MatchService(MATCH_DB, MATCH_MEDIA).run(
+                        match_id, payload.get("rounds", []), llm=llm, text=payload.get("text", ""),
+                        observations=payload.get("observations"), summarize=payload.get("summarize", True),
+                        resume=resume_id is not None, replace_existing=payload.get("replace_existing", False))
+                finally:
+                    if llm is not None:
+                        await llm.aclose()
+
+            result = asyncio.run(run())
+        except MatchConflictError as exc:
+            self._json(409, {"error": str(exc), "match_id": match_id})
+            return
+        except (AgentRequestError, InvalidImageError, LlmConfigError) as exc:
+            self._json(400, {"error": str(exc), "match_id": match_id})
+            return
+        except Exception as exc:
+            log.exception("match analysis interrupted")
+            self._json(500, {"error": f"分析中断（{type(exc).__name__}），可通过比赛编号查询进度并继续。",
+                             "match_id": match_id})
+            return
+        self._json(200, result)
+
     def _analyze(self, payload: dict) -> None:
+        if payload.get("task_type") == "match_review" and (
+                payload.get("images") or "rounds" in payload or payload.get("match_id")):
+            if "rounds" not in payload:
+                start = payload.get("start_round", 1)
+                images = payload.get("images", [])
+                if isinstance(start, bool) or not isinstance(start, int) or not isinstance(images, list):
+                    self._error(400, "start_round must be an integer and images must be a list")
+                    return
+                payload = {**payload, "rounds": [{"round_index": start + index, "images": [image]}
+                                                 for index, image in enumerate(images)]}
+            self._analyze_match(payload)
+            return
         request, force_demo, max_iterations = self._build_request(payload)
         if request is None:
             return  # _build_request already answered with 400

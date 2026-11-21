@@ -2,6 +2,19 @@
 from __future__ import annotations
 
 from schemas import CoachResponse
+from schemas.coach_response import Recommendation
+
+
+def guide_recommendation(result: dict, priority: int = 1) -> Recommendation | None:
+    """Show a sourced review question in offline reports, even with incomplete observations."""
+    data = result.get("data") or {}
+    for entry in data.get("entries", []):
+        if entry["section"] == "rules":
+            rule = entry["content"]
+            return Recommendation(priority=priority, action=rule["evaluate"],
+                                  reason=f"知识库 {rule['id']}《{rule['title']}》适用于：{rule['when']}",
+                                  expected_benefit=f"帮助核对本回合是否适用，同时考虑例外：{rule['exception']}")
+    return None
 
 _STATUS = {"success": "完整", "partial": "部分完成", "failed": "未完成"}
 _SEVERITY = {"info": "提示", "low": "低", "medium": "中", "high": "高"}

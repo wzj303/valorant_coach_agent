@@ -33,6 +33,21 @@
       </div>
     </div>
 
+    <div class="field" id="match-controls" hidden>
+      <label for="match-id">比赛编号（保留此编号可补传或恢复）</label>
+      <input id="match-id" type="text" maxlength="64" placeholder="首次分析自动生成">
+      <div class="sample-row">
+        <button type="button" id="match-load">读取比赛进度</button>
+        <button type="button" id="match-resume">继续中断的分析</button>
+        <button type="button" id="match-new">新建比赛</button>
+      </div>
+      <label for="start-round">这批截图从第几回合开始</label>
+      <input id="start-round" type="number" value="1" min="1" max="100">
+      <p class="muted">每张截图对应一回合，按下方顺序分析，可用箭头调整。支持 13 局以上、加时和分批补传；请保持己方视角一致。仅凭开局图无法判断最后一局结果或回合内过程。</p>
+      <label class="check"><input type="checkbox" id="replace-rounds"> 更正已上传回合（会重新分析该回合及后续回合）</label>
+      <div id="match-progress" role="status" aria-live="polite" class="muted"></div>
+    </div>
+
     <div class="field">
       <label for="text-input">问题或补充说明</label>
       <textarea id="text-input" rows="3"
@@ -46,7 +61,7 @@
     </div>
 
     <div class="field">
-      <label>截图（PNG / JPEG / WebP / GIF，最多 10 张，单张 ≤ 20 MB）</label>
+      <label>截图（PNG / JPEG / WebP / GIF，单张 ≤ 20 MB；整场最多 100 回合，单次复盘最多 10 张）</label>
       <div id="drop-zone">
         <div class="drop-hint">点击选择文件，或把截图拖到这里</div>
         <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
@@ -87,7 +102,7 @@
     </details>
 
     <details class="field" id="advanced">
-      <summary>高级：直接粘贴快照 JSON（RoundSnapshot / PositionSnapshot）</summary>
+      <summary>高级：直接粘贴快照 JSON（整场可填写 RoundSnapshot 数组）</summary>
       <div class="sample-row" id="sample-buttons"></div>
       <textarea id="snapshot-input" rows="8" spellcheck="false"
         placeholder='{"match_id": "...", "round_id": "...", ...}'></textarea>
@@ -107,6 +122,7 @@
 
   <section class="panel" id="report-panel">
     <h2>教练报告</h2>
+    <div id="match-timeline" hidden></div>
     <div id="report-placeholder" class="placeholder">
       填写左侧输入后点击「开始分析」。没有截图时可以直接从「高级」载入样例快照体验完整流程。
     </div>

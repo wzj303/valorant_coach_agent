@@ -11,7 +11,7 @@ python -m examples.agent2_integration
 python -m schemas.export
 ```
 
-最后一条命令按照当前安装的 Pydantic 版本再生 JSON Schema。交付包已附 `schemas/json_schema/contracts-1.0.0.json`。其 `$defs` 保存共享定义，`x-models`、`x-tools` 分别索引模型和六个工具的输入、输出。单工具注册直接使用 `TOOL_CONTRACTS[name][0].model_json_schema()` 获取含完整引用的参数定义。跨字段规则由 Pydantic 执行，接收 JSON 后仍应调用 `model_validate_json`。
+最后一条命令按照当前安装的 Pydantic 版本再生 JSON Schema。交付包已附 `schemas/json_schema/contracts-1.0.0.json`。其 `$defs` 保存共享定义，`x-models`、`x-tools` 分别索引模型和工具的输入、输出。单工具注册直接使用 `TOOL_CONTRACTS[name][0].model_json_schema()` 获取含完整引用的参数定义。跨字段规则由 Pydantic 执行，接收 JSON 后仍应调用 `model_validate_json`。
 
 ## 调用校验工具
 

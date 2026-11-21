@@ -5,6 +5,7 @@ from schemas import CoachResponse
 
 from .llm_adapter import ILlmAdapter
 from .mock_llm import final_response, tool_call_response
+from .report import guide_recommendation
 
 
 def _round(index):
@@ -55,12 +56,15 @@ class DemoLlm(ILlmAdapter):
                 if first["map_revision"] and region:
                     calls.append(("lookup_tactics", dict(map_id=first["map_id"], map_revision=first["map_revision"],
                                                          query=region)))
+                calls.append(("get_coaching_advice", dict(query="补枪是否可行", section="rules", limit=1)))
                 return tool_call_response(*calls)
             calls = [("analyze_buy_state", {"round_snapshot": s}) for s in snapshots]
             if self.task == "buy_review":
                 if first["game_patch"]:
                     calls.append(("get_game_rules", dict(game_patch=first["game_patch"], rule_categories=["weapons"])))
                 calls.append(("simulate_buy_options", dict(round_snapshot=first, strategies=["full_buy", "eco"])))
+            topic = "队内发枪与混起" if self.task == "buy_review" else "识别重复习惯与临场调整"
+            calls.append(("get_coaching_advice", dict(query=topic, section="rules", limit=1)))
             return tool_call_response(*calls)
         domain = [r for r in results if r["tool_name"] != "validate_round_data"]
         if not domain:
@@ -95,6 +99,10 @@ class DemoLlm(ILlmAdapter):
                         recommendations.append(dict(priority=1, action="记录购买前及购买后各一次余额。",
                             reason="时点不明的数值无法用于模拟该回合预算。", expected_benefit="下次复盘可以核对个人花费。"))
         for r in results:
+            if r["tool_name"] == "get_coaching_advice":
+                advice = guide_recommendation(r, len(recommendations) + 1)
+                if advice:
+                    recommendations.append(advice)
             if r["tool_name"] == "analyze_positions":
                 evidence.extend(r["evidence"])
                 for frame in r["data"]["region_distribution"]:
