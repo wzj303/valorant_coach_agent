@@ -9,6 +9,7 @@
 | Agent 与 Skills（`agent/`、`skills/`、`tools/registry.py`） | GPT-1 | [README-agent1.md](README-agent1.md) |
 | 数据契约与校验（`schemas/`、`tools/validate_round_data.py`） | GPT-2 | [README-agent2.md](README-agent2.md) |
 | 战术工具与服务（`tools/domain/`、`services/`、`knowledge/`） | GPT-3 | 本 README 的 Tactical Engine 说明 |
+| 本地 Web 前端（`webapp/`） | 共用 | 见下方「Web 前端」 |
 
 ## 运行 Demo
 
@@ -41,6 +42,28 @@ python -m venv .venv
 ```
 
 当前知识库的价格和地图修订尚待核验。工具仍能统计已观察的金币、装备和区域人数；依赖缺失价格或地图拓扑的判断会标记为 `partial` 并给出原因。
+
+## 本地 Web 前端
+
+零依赖的浏览器界面：一个人启动服务，队友用浏览器打开地址即可使用，无需安装任何东西。
+
+```powershell
+python -m webapp                    # 监听所有网卡，默认端口 8765
+python -m webapp --port 9000        # 换端口
+python -m webapp --host 127.0.0.1   # 仅本机
+```
+
+启动后控制台会打印本机地址和局域网地址（例如 `http://192.168.x.x:8765/`），把局域网地址发给同一网络下的队友即可。首次启动若 Windows 弹出防火墙提示，选择允许。
+
+页面功能：
+
+- 选择任务类型（购买 / 站位 / 整场 / 自动），填写问题或补充说明，上传截图（可拖拽、多张、带预览），或直接粘贴快照 JSON（内置完整回合、部分回合、站位、非法数据四类样例一键载入）
+- 「开始分析」后展示教练报告：状态、总体判断、购买/站位结论、发现（带严重度和置信度）、建议、证据表、缺失信息、总结，以及工具调用 trace（可复制 JSON / Markdown）
+- 未配置模型密钥时自动使用离线演示模式（不联网、不需要任何密钥）；配置 `.env` 后自动切换真实模型，可勾选强制离线演示
+
+接口：`GET /api/health`、`GET /api/samples`、`POST /api/analyze`。请求体上限 64 MB，单张图片 ≤ 20 MB、最多 10 张，模型输出全部按纯文本渲染，不会执行任何上传内容。
+
+跨网络访问（队友不在同一局域网）需要内网穿透或路由器端口转发，例如 frp / ngrok 等工具，把外网端口映射到本机的 8765。
 
 ## GPT-3 Tactical Engine
 

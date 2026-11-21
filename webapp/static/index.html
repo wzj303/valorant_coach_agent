@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VALORANT 教练复盘</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <h1>VALORANT 教练复盘</h1>
+    <div class="header-right">
+      <span id="mode-badge" class="badge">连接中…</span>
+      <span id="health-note" class="muted"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="panel" id="input-panel">
+    <h2>输入</h2>
+
+    <div class="field">
+      <label>任务类型</label>
+      <div class="segmented" id="task-group">
+        <button type="button" data-task="buy_review">购买复盘</button>
+        <button type="button" data-task="position_review">站位复盘</button>
+        <button type="button" data-task="match_review">整场复盘</button>
+        <button type="button" data-task="">自动</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="text-input">问题或补充说明</label>
+      <textarea id="text-input" rows="3"
+        placeholder="例如：这回合该不该起枪？/ 站位有没有问题？"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="observation-input">已确认的事实（每行一条，视为 user_confirmed）</label>
+      <textarea id="observation-input" rows="2"
+        placeholder="例如：我方 Jett 有 4500 金币&#10;敌方开局连败两局"></textarea>
+    </div>
+
+    <div class="field">
+      <label>截图（PNG / JPEG / WebP / GIF，最多 10 张，单张 ≤ 20 MB）</label>
+      <div id="drop-zone">
+        <div class="drop-hint">点击选择文件，或把截图拖到这里</div>
+        <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+        <div id="previews" class="previews"></div>
+      </div>
+    </div>
+
+    <details class="field" id="advanced">
+      <summary>高级：直接粘贴快照 JSON（RoundSnapshot / PositionSnapshot）</summary>
+      <div class="sample-row" id="sample-buttons"></div>
+      <textarea id="snapshot-input" rows="8" spellcheck="false"
+        placeholder='{"match_id": "...", "round_id": "...", ...}'></textarea>
+      <button type="button" id="format-snapshot" class="ghost">格式化并校验 JSON</button>
+      <span id="snapshot-note" class="muted"></span>
+    </details>
+
+    <div class="field row" id="options-row">
+      <label class="check"><input type="checkbox" id="force-demo" hidden>
+        强制离线演示（忽略已配置的真实模型）</label>
+      <label class="check"><input type="checkbox" id="show-json"> 同时显示原始 JSON</label>
+    </div>
+
+    <button id="run-button" class="primary">开始分析</button>
+    <div id="client-error" class="error-box" hidden></div>
+  </section>
+
+  <section class="panel" id="report-panel">
+    <h2>教练报告</h2>
+    <div id="report-placeholder" class="placeholder">
+      填写左侧输入后点击「开始分析」。没有截图时可以直接从「高级」载入样例快照体验完整流程。
+    </div>
+    <div id="report-content" hidden></div>
+  </section>
+</main>
+
+<footer class="muted">离线演示不需要任何模型密钥 · 工具结果中的未知值不会被当作零</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>
