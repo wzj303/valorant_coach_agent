@@ -1,6 +1,6 @@
 # VALORANT AI Coach · Agent-1：Agent Core 与 Skills
 
-单 Agent：直接接收截图和文字，选择 Skill，调用已注册的 Python 工具，输出符合 `schemas.CoachResponse` 的教练报告。不含经济/地图算法（GPT-3）和数据契约（GPT-2）。
+单回合 Agent 直接接收截图和文字，选择 Skill，调用已注册的 Python 工具，输出符合 `schemas.CoachResponse` 的教练报告。整场连续复盘通过 `agent/match_graph.py` 的 LangGraph 工作流管理逐回合校验、计算、报告和 SQLite 检查点，见 [工作流说明](docs/match-workflow.md)。不含经济/地图算法（GPT-3）和数据契约（GPT-2）。
 
 ## 安装与运行
 
@@ -51,7 +51,7 @@ report = await loop.run(AgentRequest(text="...", images=["shot.png"], task_type=
 | `tools/registry.py` | 注册六个工具：`validate_round_data` 加 GPT-3 的五个 |
 | `skills/` | `buy-decision-review`、`position-coordination-review`、`coach-feedback` |
 
-复用的开源件：`openai`、`anthropic`（请求、重试、错误类型）、`pydantic`（参数与输出校验）、`PyYAML`（SKILL.md 头部）。没有引入 LangChain 之类的编排框架，AgentLoop 约 260 行。
+复用的开源件：`openai`、`anthropic`（请求、重试、错误类型）、`pydantic`（参数与输出校验）、`PyYAML`（SKILL.md 头部）。单回合 AgentLoop 保持轻量；整场编排使用 `langgraph` 与 `langgraph-checkpoint-sqlite`，直接复用中立模型适配器和战术工具，不需要更换为 LangChain 模型封装。
 
 ## 行为约定
 
@@ -88,5 +88,5 @@ def analyze_buy_state(round_snapshot: RoundSnapshot) -> ...:    # 按字段名�
 - **在线模型待验证**：OpenAI 兼容 SDK 已通过本机回环服务验证图片传输、两轮工具调用和报告返回。实际模型的截图识别能力需要配置服务后使用 `--check-llm` 和真实截图检验。
 - 离线端到端测试使用真实战术工具；价格、地图修订或局内观察不足时会产生部分结果。
 - **截图读取质量取决于模型**：本模块不做 OCR，Skill 只约束填写规则。读错的字段靠 `validate_round_data` 的一致性检查和用户确认纠正。
-- 没有流式输出、没有跨请求的会话记忆。`coach-feedback` 依赖调用方把已有分析放进 `AgentRequest.context`。
+- 单回合入口没有流式输出和跨请求记忆。整场入口通过 SQLite 保存连续回合状态，Web 页面轮询进度；尚未提供逐 token 流式输出。
 - Windows 上若系统临时目录无写权限，pytest 的 `tmp_path` 会失败，`pyproject.toml` 已把 `--basetemp` 指到仓库内的 `.pytest_tmp`。

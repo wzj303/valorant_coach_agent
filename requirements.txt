@@ -4,6 +4,8 @@ openai>=1.40          # OpenAI-compatible chat/completions (vision + tools)
 anthropic>=0.40       # Anthropic Messages API (vision + tools)
 pyyaml>=6.0           # SKILL.md frontmatter
 python-dotenv>=1.0    # load .env for the CLI
+langgraph>=1.2.24,<2  # durable, sequential full-match orchestration
+langgraph-checkpoint-sqlite>=3.1.3,<4
 
 # Tests
 pytest>=8.0

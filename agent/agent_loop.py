@@ -112,6 +112,22 @@ class AgentLoop:
         response = await self._finalize(final_text, request, messages, trace)
         return AgentRunResult(response=response, trace=trace)
 
+    async def report_from_evidence(self, request: AgentRequest, evidence_text: str,
+                                   trace: AgentTrace | None = None) -> AgentRunResult:
+        """Generate a report from host-executed tools without reopening tool selection."""
+        trace = trace or AgentTrace(task_id=request.task_id)
+        skill = self._initial_skill(request)
+        trace.skill = skill.name if skill else None
+        messages = [Message.system(self._system_prompt(skill) +
+                    "\n宿主已完成数据校验和工具计算。只使用下方提供的结果写报告，不再调用工具。"
+                    "历史回合仅用于比较，不得用于补齐当前截图未知字段。"),
+                    Message.user(self._user_text(request, []) + "\n\n" + evidence_text)]
+        trace.iterations += 1
+        reply = await self._chat(messages, [], trace)
+        messages.append(Message.assistant(reply.text))
+        response = await self._finalize(reply.text, request, messages, trace)
+        return AgentRunResult(response=response, trace=trace)
+
     # ------------------------------------------------------------------ request
     def _prepare_images(self, request: AgentRequest) -> list[ImagePart]:
         if len(request.images) > MAX_IMAGES:
