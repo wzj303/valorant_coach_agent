@@ -183,13 +183,21 @@ class MatchService:
 
     async def status(self, match_id: str) -> dict | None:
         check_match_id(match_id)
+        running = _lock_for(self.database, match_id).locked()
         async with AsyncSqliteSaver.from_conn_string(str(self.database)) as saver:
             saver.serde = JsonPlusSerializer(allowed_msgpack_modules=[])
             graph = self._workflow(None, saver).graph
             checkpoint = await graph.aget_state(self._config(match_id))
             if not checkpoint.values:
-                return None
-            return self._public(checkpoint.values, bool(checkpoint.next), _lock_for(self.database, match_id).locked())
+                # A run can hold the lock before LangGraph persists its first
+                # checkpoint; report it as running instead of "not found".
+                if not running:
+                    return None
+                return self._public({"match_id": match_id, "mode": "unknown", "records": [],
+                                     "report": None, "current": {}, "pending": [], "cursor": 0,
+                                     "phase": "starting", "timeline": [], "trace": {}},
+                                    False, True)
+            return self._public(checkpoint.values, bool(checkpoint.next), running)
 
     @staticmethod
     def _public(state: dict, pending: bool, running: bool) -> dict:
