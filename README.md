@@ -44,7 +44,7 @@ python -m venv .venv
 
 ## GPT-3 Tactical Engine
 
-提供五个可独立调用的 Mapping-based Tool 入口：
+提供五个可独立调用的战术工具入口（经 GPT-2 契约适配）：
 
 - `tools.domain.analyze_buy_state`
 - `tools.domain.simulate_buy_options`
