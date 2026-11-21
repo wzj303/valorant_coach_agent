@@ -21,7 +21,7 @@ from schemas import ToolResult
 
 from .exceptions import ToolRegistrationError
 from .llm_types import ToolCall, ToolSpec
-from .utils import compact_json, format_validation_error, strip_titles
+from .utils import compact_json, decode_json_string, format_validation_error, strip_titles
 
 _VALID_STATUS = {"success", "partial", "failed"}
 
@@ -149,7 +149,7 @@ class ToolRegistry:
             return attempt(arguments)
         except ValidationError as first:
             # Models sometimes send a nested object as a JSON *string*. Decode and retry once.
-            decoded = {k: _maybe_decode(v) for k, v in arguments.items()}
+            decoded = {k: decode_json_string(v) for k, v in arguments.items()}
             if decoded != arguments:
                 try:
                     return attempt(decoded)
@@ -211,14 +211,3 @@ def _bind_model(tool: ToolDefinition, payload: BaseModel) -> tuple[tuple[Any, ..
         fields = {n: getattr(payload, n) for n in model_fields if accepts_any or n in named}
         return (), fields
     return (payload,), {}
-
-
-def _maybe_decode(value: Any) -> Any:
-    if isinstance(value, str) and value.lstrip()[:1] in ("{", "["):
-        try:
-            decoded = json.loads(value)
-        except ValueError:
-            return value
-        if isinstance(decoded, (dict, list)):
-            return decoded
-    return value

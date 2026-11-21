@@ -410,11 +410,13 @@ function renderTrace(data) {
   const details = el("details", "trace");
   details.append(el("summary", "", "执行详情（trace）"));
   const meta = el("div", "trace-meta");
+  const usage = trace.usage || {};
   meta.textContent = "Skill: " + (trace.skill || "无") +
     " · 轮次: " + trace.iterations +
     " · 工具调用: " + trace.tool_calls +
     " · 格式修复: " + trace.repairs +
-    " · 模式: " + (data.mode === "real" ? "真实模型" : "离线演示");
+    " · 模式: " + (data.mode === "real" ? "真实模型" : "离线演示") +
+    " · 令牌: 入 " + (usage.input_tokens || 0) + " / 出 " + (usage.output_tokens || 0);
   details.append(meta);
   if (trace.tool_executions && trace.tool_executions.length) {
     trace.tool_executions.forEach((execution) => {

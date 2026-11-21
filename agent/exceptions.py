@@ -15,15 +15,6 @@ class InvalidImageError(AgentRequestError):
     """An uploaded image is missing, too large, or not a supported format."""
 
 
-# --- run -----------------------------------------------------------------
-class AgentOutputError(AgentError):
-    """The model never produced a valid CoachResponse (after repair attempts)."""
-
-
-class AgentLimitError(AgentError):
-    """The run exceeded max_iterations / the tool-call budget."""
-
-
 # --- LLM -----------------------------------------------------------------
 class LlmError(AgentError):
     """Base class for LLM adapter failures."""

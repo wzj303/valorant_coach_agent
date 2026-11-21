@@ -20,7 +20,3 @@ class GameRulesProvider:
         if query is not None:
             require_mapping(query)
         return result({"rules": dict(self.rules)}, source=self.source, version=self.version)
-
-
-def get_rule(query: Mapping, rules: Mapping, *, version: str = "unknown", source: str = "caller-provided") -> dict:
-    return GameRulesProvider(rules, version=version, source=source).get_rule(query)

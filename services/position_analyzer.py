@@ -17,7 +17,3 @@ class PositionAnalyzer:
         if not isinstance(regions, Mapping) or region not in regions:
             return result({"map": map_name, "region": region, "position": None}, source=self.source, version=self.version, status="unknown", unknown=[f"position:{map_name}:{region}"])
         return result({"map": map_name, "region": region, "position": regions[region]}, source=self.source, version=self.version)
-
-
-def analyze_position(snapshot: Mapping, maps: Mapping, **kwargs) -> dict:
-    return PositionAnalyzer(maps, **kwargs).analyze_position(snapshot)

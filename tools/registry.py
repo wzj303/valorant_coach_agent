@@ -23,6 +23,7 @@ from schemas import TOOL_CONTRACTS
 from schemas.validation import ValidateRoundInput
 
 from agent.tool_registry import ToolRegistry
+from agent.utils import decode_json_string
 
 log = logging.getLogger("agent.tools")
 
@@ -49,15 +50,6 @@ DESCRIPTIONS = {
 }
 
 
-def _maybe_decode(value: Any) -> Any:
-    if isinstance(value, str) and value.lstrip()[:1] in ("{", "["):
-        try:
-            return json.loads(value)
-        except ValueError:
-            return value
-    return value
-
-
 def make_validate_handler(expected_map_revision: str | None = None) -> Callable[..., Any]:
     """Wrap validate_round_data. The map revision is trusted host context, never a model argument."""
     from tools.validate_round_data import validate_round_data
@@ -69,7 +61,7 @@ def make_validate_handler(expected_map_revision: str | None = None) -> Callable[
         if extra:
             return _failed("validate_round_data",
                            f"unexpected argument(s): {', '.join(extra)}; allowed: {', '.join(sorted(allowed))}")
-        decoded = {k: _maybe_decode(v) for k, v in arguments.items()}
+        decoded = {k: decode_json_string(v) for k, v in arguments.items()}
         return validate_round_data(**decoded, expected_map_revision=expected_map_revision)
 
     return handler

@@ -14,6 +14,18 @@ def compact_json(obj: Any) -> str:
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
+def decode_json_string(value: Any) -> Any:
+    """Decode a nested object sent by a model as a JSON *string* (e.g. round_snapshot)."""
+    if isinstance(value, str) and value.lstrip()[:1] in ("{", "["):
+        try:
+            decoded = json.loads(value)
+        except ValueError:
+            return value
+        if isinstance(decoded, (dict, list)):
+            return decoded
+    return value
+
+
 def extract_json_object(text: str) -> dict[str, Any] | None:
     """Return the JSON object in a model reply: bare, code-fenced, or followed by prose."""
     for candidate in [text.strip(), *(m.strip() for m in _FENCE.findall(text))]:

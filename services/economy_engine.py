@@ -114,9 +114,3 @@ class EconomyEngine:
             finite_number(value, f"players[].{field}", minimum=0)
             for value in values
         )
-
-
-def analyze_buy_state(
-    snapshot: Mapping, rules: Mapping | None = None, **kwargs
-) -> dict:
-    return EconomyEngine(rules, **kwargs).analyze_buy_state(snapshot)

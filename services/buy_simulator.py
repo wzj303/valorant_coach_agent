@@ -150,7 +150,3 @@ class BuySimulator:
         unknown = list(dict.fromkeys(unknown))
         return result({"options": options, "strategy_options": plans, "credits": credits},
                       source=self.source, version=self.version, status="unknown" if unknown else "ok", unknown=unknown)
-
-
-def simulate_buy_options(snapshot: Mapping, weapon_costs: Mapping, **kwargs) -> dict:
-    return BuySimulator(weapon_costs, **kwargs).simulate_buy_options(snapshot)
